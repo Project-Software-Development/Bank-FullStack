@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import { ApiRequestError, register } from '../services/authService'
 import type { RegisterFieldErrors, RegisterFormData } from '../types/register'
 import {
   formatCpf,
@@ -40,14 +41,32 @@ export function RegisterPage() {
 
     const normalizedPayload = normalizeRegisterData(formData)
 
-    await new Promise((resolve) => setTimeout(resolve, 500))
+    try {
+      await register(normalizedPayload)
+      setSubmitState('success')
+      setMessage('Cadastro realizado com sucesso.')
+      setFormData(INITIAL_REGISTER_FORM)
+      setErrors({})
+    } catch (error) {
+      setSubmitState('error')
 
-    console.log('Payload pronto para integração futura:', normalizedPayload)
+      if (error instanceof ApiRequestError) {
+        if (error.status === 409) {
+          setMessage('CPF ou e-mail já cadastrado.')
+          return
+        }
 
-    setSubmitState('success')
-    setMessage('Cadastro validado com sucesso. Integração de API será adicionada na próxima etapa.')
-    setFormData(INITIAL_REGISTER_FORM)
-    setErrors({})
+        if (error.status === 404 || error.status === 405) {
+          setMessage('Cadastro ainda não está habilitado na API.')
+          return
+        }
+
+        setMessage(error.message)
+        return
+      }
+
+      setMessage('Não foi possível conectar com a API de cadastro.')
+    }
   }
 
   return (
