@@ -23,10 +23,13 @@ export function RegisterPage() {
   ) {
     setFormData((current) => ({ ...current, [key]: value }))
     setErrors((current) => ({ ...current, [key]: undefined }))
+    setMessage('')
+    setSubmitState('idle')
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    setMessage('')
     const validationErrors = validateRegisterForm(formData)
 
     if (Object.keys(validationErrors).length > 0) {
