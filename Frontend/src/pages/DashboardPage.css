@@ -65,6 +65,45 @@
   border: 1px solid #dde3f0;
 }
 
+.session-card {
+  background: white;
+  border-radius: 14px;
+  padding: 28px;
+  margin-bottom: 24px;
+  border: 1px solid #dde3f0;
+}
+
+.session-card h2 {
+  font-size: 1.05rem;
+  color: #0d1f3c;
+  margin-bottom: 14px;
+}
+
+.session-card dl {
+  display: grid;
+  gap: 10px;
+}
+
+.session-card dl div {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.session-card dt {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6b7a99;
+}
+
+.session-card dd {
+  font-size: 0.9rem;
+  color: #0d1f3c;
+  word-break: break-word;
+}
+
 .welcome-tag {
   font-size: 0.8rem;
   text-transform: uppercase;

@@ -33,9 +33,31 @@ export default function DashboardPage() {
             <span className="status-badge">{user?.statusConta}</span>
           </p>
         </div>
-        <p className="dashboard-hint">
-          🚀 Dashboard em construção. O login com a API está funcionando!
-        </p>
+        <div className="session-card">
+          <h2>Dados da sessão autenticada</h2>
+          <dl>
+            <div>
+              <dt>Nome</dt>
+              <dd>{user?.nome}</dd>
+            </div>
+            <div>
+              <dt>E-mail</dt>
+              <dd>{user?.email}</dd>
+            </div>
+            <div>
+              <dt>CPF</dt>
+              <dd>{user?.cpf}</dd>
+            </div>
+            <div>
+              <dt>Tipo</dt>
+              <dd>{user?.tipo}</dd>
+            </div>
+            <div>
+              <dt>Status</dt>
+              <dd>{user?.statusConta}</dd>
+            </div>
+          </dl>
+        </div>
       </main>
     </div>
   );

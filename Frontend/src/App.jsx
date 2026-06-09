@@ -1,6 +1,6 @@
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
-import DashboardPage from './pages/DashboardPage';
+import HomePage from './pages/HomePage';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -22,7 +22,7 @@ function AppContent() {
     );
   }
 
-  return user ? <DashboardPage /> : <LoginPage />;
+  return user ? <HomePage /> : <LoginPage />;
 }
 
 export default function App() {
