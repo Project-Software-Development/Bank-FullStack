@@ -1,7 +1,10 @@
 import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiBadRequestResponse,
   ApiBody,
+  ApiConflictResponse,
+  ApiCreatedResponse,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
@@ -11,6 +14,7 @@ import { Request } from 'express';
 import { AuthService } from './auth.service';
 import { BasicUser } from './auth.types';
 import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 type RequestWithUser = Request & {
@@ -46,6 +50,30 @@ export class AuthController {
   @ApiUnauthorizedResponse({ description: 'Credenciais invalidas.' })
   login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
+  }
+
+  @Post('register')
+  @ApiOperation({ summary: 'Cadastra um novo usuario cliente.' })
+  @ApiBody({ type: RegisterDto })
+  @ApiCreatedResponse({
+    description: 'Usuario cadastrado com sucesso.',
+    schema: {
+      example: {
+        id: '0f13db49-44a9-4cc8-b90f-5655489263aa',
+        nome: 'Maria Silva',
+        cpf: '12345678900',
+        email: 'maria@email.com',
+        telefone: '98999999999',
+        tipo: 'CLIENTE',
+        statusConta: 'ATIVO',
+        createdAt: '2026-05-26T20:00:00.000Z',
+      },
+    },
+  })
+  @ApiBadRequestResponse({ description: 'Dados de cadastro invalidos.' })
+  @ApiConflictResponse({ description: 'CPF ou e-mail ja cadastrado.' })
+  register(@Body() registerDto: RegisterDto) {
+    return this.authService.register(registerDto);
   }
 
   @Get('me')
