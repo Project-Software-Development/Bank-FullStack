@@ -78,7 +78,8 @@ export default function LoginPage() {
       const data = await login(identifier.trim(), senha);
       signIn(data.accessToken, data.user);
     } catch (err) {
-      setError(err.message || 'Erro ao fazer login. Tente novamente.');
+      const message = err instanceof Error ? err.message : 'Erro ao fazer login. Tente novamente.';
+      setError(message);
     } finally {
       setLoading(false);
     }

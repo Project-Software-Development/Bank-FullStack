@@ -42,6 +42,7 @@ Configure as variaveis de ambiente no `.env`:
 ```env
 DATABASE_URL="postgresql://user:password@localhost:5432/api_banco_digital?schema=public"
 JWT_SECRET="troque-este-segredo-em-producao"
+FRONTEND_ORIGIN="http://localhost:5173"
 ```
 
 Gere o Prisma Client:
@@ -87,6 +88,7 @@ Bearer seu_token_jwt
 | ---------------- | -------------------------------------------------------- |
 | `DATABASE_URL` | URL de conexao com o banco PostgreSQL usado pelo Prisma. |
 | `JWT_SECRET`   | Chave secreta usada para assinar e validar tokens JWT.   |
+| `FRONTEND_ORIGIN` | Origem permitida no CORS para o frontend local. |
 
 ## Modelo de Usuario Esperado
 
