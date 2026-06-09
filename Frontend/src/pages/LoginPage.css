@@ -51,7 +51,7 @@
   padding: 56px 52px;
   display: flex;
   flex-direction: column;
-  gap: 48px;
+  gap: 32px;
   max-width: 420px;
 }
 
@@ -91,42 +91,6 @@
 }
 
 /* Stats */
-.login-panel__stats {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  padding: 24px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: var(--radius);
-}
-
-.stat {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.stat__value {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--green);
-  letter-spacing: -0.02em;
-}
-
-.stat__label {
-  font-size: 0.72rem;
-  color: rgba(255,255,255,0.45);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.stat__divider {
-  width: 1px;
-  height: 36px;
-  background: rgba(255,255,255,0.12);
-}
-
 /* Background decorativo — linhas diagonais */
 .login-panel__bg-lines {
   position: absolute;
@@ -238,18 +202,9 @@ form {
   align-items: center;
 }
 
-.input-icon {
-  position: absolute;
-  left: 14px;
-  color: var(--text-muted);
-  display: flex;
-  align-items: center;
-  pointer-events: none;
-}
-
 .input-wrapper input {
   width: 100%;
-  padding: 13px 14px 13px 44px;
+  padding: 13px 14px;
   background: var(--input-bg);
   border: 1.5px solid var(--border);
   border-radius: 10px;
@@ -278,6 +233,8 @@ form {
 .toggle-password {
   position: absolute;
   right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
   background: none;
   border: none;
   cursor: pointer;

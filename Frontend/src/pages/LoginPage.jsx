@@ -96,22 +96,6 @@ export default function LoginPage({ onOpenRegister, initialIdentifier = '', noti
             <h2>Sua vida financeira,<br />no seu controle.</h2>
             <p>Acesso seguro, transações rápidas<br />e saldo sempre à vista.</p>
           </div>
-          <div className="login-panel__stats">
-            <div className="stat">
-              <span className="stat__value">256-bit</span>
-              <span className="stat__label">Criptografia</span>
-            </div>
-            <div className="stat__divider" />
-            <div className="stat">
-              <span className="stat__value">24/7</span>
-              <span className="stat__label">Disponível</span>
-            </div>
-            <div className="stat__divider" />
-            <div className="stat">
-              <span className="stat__value">Zero</span>
-              <span className="stat__label">Tarifa mensal</span>
-            </div>
-          </div>
         </div>
         <div className="login-panel__bg-lines" aria-hidden="true">
           {Array.from({ length: 7 }).map((_, i) => (
@@ -136,12 +120,6 @@ export default function LoginPage({ onOpenRegister, initialIdentifier = '', noti
             <div className="field-group">
               <label htmlFor="identifier">E-mail ou CPF</label>
               <div className="input-wrapper">
-                <span className="input-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                </span>
                 <input
                   id="identifier"
                   type="text"
@@ -163,12 +141,6 @@ export default function LoginPage({ onOpenRegister, initialIdentifier = '', noti
                 </button>
               </div>
               <div className="input-wrapper">
-                <span className="input-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                  </svg>
-                </span>
                 <input
                   id="senha"
                   type={showPassword ? 'text' : 'password'}
