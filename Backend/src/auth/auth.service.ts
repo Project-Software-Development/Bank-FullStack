@@ -1,11 +1,14 @@
 import {
+  ConflictException,
   Injectable,
   UnauthorizedException,
   ForbiddenException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { BasicUser, JwtPayload } from './auth.types';
 
@@ -47,6 +50,41 @@ export class AuthService {
     };
   }
 
+  async register(registerDto: RegisterDto): Promise<BasicUser> {
+    const email = registerDto.email.toLowerCase();
+    const cpf = registerDto.cpf.replace(/\D/g, '');
+    const telefone = registerDto.telefone?.replace(/\D/g, '');
+
+    await this.ensureUserDoesNotExist(email, cpf);
+
+    const senha = await bcrypt.hash(registerDto.senha, 10);
+
+    try {
+      const user = await this.prisma.user.create({
+        data: {
+          nome: registerDto.nome.trim(),
+          cpf,
+          email,
+          telefone,
+          senha,
+          tipo: 'CLIENTE',
+          statusConta: 'ATIVO',
+        },
+      });
+
+      return this.toBasicUser(user);
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException('CPF ou e-mail ja cadastrado.');
+      }
+
+      throw error;
+    }
+  }
+
   async findById(id: string): Promise<BasicUser | null> {
     const user = await this.prisma.user.findUnique({
       where: { id },
@@ -67,13 +105,28 @@ export class AuthService {
     return this.prisma.user.findFirst({
       where: {
         OR: [
-          { email: identifier },
-          { email },
+          { email: { equals: identifier, mode: 'insensitive' } },
+          { email: { equals: email, mode: 'insensitive' } },
           { cpf: identifier },
           ...(identifierAsCpf !== identifier ? [{ cpf: identifierAsCpf }] : []),
         ],
       },
     });
+  }
+
+  private async ensureUserDoesNotExist(email: string, cpf: string) {
+    const existingUser = await this.prisma.user.findFirst({
+      where: {
+        OR: [{ email: { equals: email, mode: 'insensitive' } }, { cpf }],
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (existingUser) {
+      throw new ConflictException('CPF ou e-mail ja cadastrado.');
+    }
   }
 
   private isUserActive(statusConta: string): boolean {

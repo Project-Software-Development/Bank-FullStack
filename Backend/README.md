@@ -1,8 +1,12 @@
 # API Banco Digital
 
-Backend em NestJS com TypeScript, Prisma, JWT e Swagger.
+Backend em NestJS com TypeScript, Prisma, PostgreSQL, JWT, bcrypt e Swagger.
 
-Esta entrega implementa somente autenticacao: login, rota para consultar o usuario autenticado e documentacao Swagger. Nao existe endpoint de cadastro de usuario neste projeto.
+Esta versao entrega os fluxos necessarios para o frontend implementar:
+
+- Cadastro de usuarios clientes.
+- Login por e-mail ou CPF.
+- Consulta do usuario autenticado pelo token JWT.
 
 ## Tecnologias
 
@@ -15,13 +19,6 @@ Esta entrega implementa somente autenticacao: login, rota para consultar o usuar
 - Passport
 - bcrypt
 - Swagger/OpenAPI
-
-## Requisitos
-
-- Node.js instalado
-- npm instalado
-- PostgreSQL em execucao
-- Banco de dados criado para o projeto
 
 ## Como Rodar o Projeto
 
@@ -37,7 +34,7 @@ Crie o arquivo `.env` com base no exemplo:
 cp .env.example .env
 ```
 
-Configure as variaveis de ambiente no `.env`:
+Configure as variaveis de ambiente:
 
 ```env
 DATABASE_URL="postgresql://user:password@localhost:5432/api_banco_digital?schema=public"
@@ -51,64 +48,133 @@ Gere o Prisma Client:
 npm run prisma:generate
 ```
 
-Inicie a aplicacao em modo desenvolvimento:
+Sincronize o schema Prisma com o banco local:
+
+```bash
+npx prisma db push
+```
+
+Inicie a aplicacao em desenvolvimento:
 
 ```bash
 npm run start:dev
 ```
 
-A API ficara disponivel em:
+A API fica disponivel em:
 
 ```text
 http://localhost:3000
 ```
 
-## Swagger
-
-A documentacao Swagger fica disponivel em:
+A documentacao Swagger fica em:
 
 ```text
 http://localhost:3000/api/docs
 ```
 
-Para testar rotas protegidas:
+## CORS
 
-1. Faca login em `POST /auth/login`.
-2. Copie o `accessToken` retornado.
-3. Clique em `Authorize` no Swagger.
-4. Informe o token no formato Bearer, se necessario:
+O backend esta com CORS habilitado para permitir chamadas do frontend em outra porta, por exemplo:
 
 ```text
-Bearer seu_token_jwt
+http://localhost:5173
+http://localhost:3001
 ```
 
-## Variaveis de Ambiente
+## Modelo de Usuario
+Tabela `User` usada pelo Prisma:
+| Campo           | Tipo      | Observacao                                      |
+| --------------- | --------- | ----------------------------------------------- |
+| `id`            | `String`  | UUID gerado automaticamente.                    |
+| `nome`          | `String`  | Nome do usuario.                                |
+| `cpf`           | `String`  | Unico. Usado tambem no login.                   |
+| `email`         | `String`  | Unico. Usado tambem no login.                   |
+| `telefone`      | `String?` | Opcional.                                       |
+| `senha`         | `String`  | Salva criptografada com bcrypt.                 |
+| `tipo`          | `String`  | Novos cadastros recebem `CLIENTE`.              |
+| `statusConta`   | `String`  | Novos cadastros recebem `ATIVO`.                |
+| `createdAt`     | `DateTime`| Data de criacao.                                |
 
-| Variavel         | Descricao                                                |
-| ---------------- | -------------------------------------------------------- |
-| `DATABASE_URL` | URL de conexao com o banco PostgreSQL usado pelo Prisma. |
-| `JWT_SECRET`   | Chave secreta usada para assinar e validar tokens JWT.   |
-| `FRONTEND_ORIGIN` | Origem permitida no CORS para o frontend local. |
+Importante: o campo `senha` nunca e retornado nas respostas da API.
 
-## Modelo de Usuario Esperado
+## Endpoints Para o Frontend
 
-O projeto considera uma tabela `User` com os seguintes campos:
+### POST `/auth/register`
 
-| Campo           | Tipo esperado | Descricao                                                                                    |
-| --------------- | ------------- | -------------------------------------------------------------------------------------------- |
-| `id`          | `String`    | Identificador unico do usuario.                                                              |
-| `nome`        | `String`    | Nome do usuario.                                                                             |
-| `cpf`         | `String`    | CPF usado tambem para login.                                                                 |
-| `email`       | `String`    | E-mail usado tambem para login.                                                              |
-| `telefone`    | `String?`   | Telefone do usuario.                                                                         |
-| `senha`       | `String`    | Senha criptografada com bcrypt.                                                              |
-| `tipo`        | `String`    | Tipo/perfil do usuario.                                                                      |
-| `statusConta` | `String`    | Status da conta. Usuarios ativos devem usar valores como `ATIVO`, `ATIVA` ou `ACTIVE`. |
-| `createdAt`   | `DateTime`  | Data de criacao do usuario.                                                                  |
+Cadastra um novo usuario cliente.
 
-Importante: a senha nunca e retornada nas respostas da API.
+Body:
 
-## Endpoints Criados
+```json
+{
+  "nome": "Maria Silva",
+  "cpf": "12345678900",
+  "email": "maria@email.com",
+  "telefone": "98999999999",
+  "senha": "senha123"
+}
+```
+
+Regras:
+
+- `nome` e obrigatorio.
+- `cpf` e obrigatorio e deve ter 11 digitos.
+- `cpf` pode ser enviado com ou sem pontuacao.
+- `email` e obrigatorio e deve ser valido.
+- `email` e salvo em letras minusculas.
+- `telefone` e opcional.
+- `telefone` pode ser enviado com ou sem pontuacao.
+- `senha` e obrigatoria e deve ter pelo menos 6 caracteres.
+- CPF e e-mail nao podem estar cadastrados.
+- A senha e criptografada antes de salvar.
+- O usuario criado recebe `tipo: "CLIENTE"` e `statusConta: "ATIVO"`.
+
+Resposta de sucesso, status `201`:
+
+```json
+{
+  "id": "0f13db49-44a9-4cc8-b90f-5655489263aa",
+  "nome": "Maria Silva",
+  "cpf": "12345678900",
+  "email": "maria@email.com",
+  "telefone": "98999999999",
+  "tipo": "CLIENTE",
+  "statusConta": "ATIVO",
+  "createdAt": "2026-05-26T20:00:00.000Z"
+}
+```
+
+Erros esperados:
+
+| Status | Quando acontece                         |
+| ------ | --------------------------------------- |
+| `400`  | Campos invalidos ou faltando.           |
+| `409`  | CPF ou e-mail ja cadastrado.            |
+| `500`  | Erro inesperado no servidor ou banco.   |
+
+Exemplo para o frontend:
+
+```ts
+const response = await fetch('http://localhost:3000/auth/register', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    nome: 'Maria Silva',
+    cpf: '12345678900',
+    email: 'maria@email.com',
+    telefone: '98999999999',
+    senha: 'senha123',
+  }),
+});
+
+const data = await response.json();
+
+if (!response.ok) {
+  throw new Error(data.message ?? 'Erro ao cadastrar usuario.');
+}
+```
 
 ### POST `/auth/login`
 
@@ -123,13 +189,13 @@ Body:
 }
 ```
 
-Resposta de sucesso:
+Resposta de sucesso, status `200`:
 
 ```json
 {
   "accessToken": "token.jwt.aqui",
   "user": {
-    "id": "uuid-do-usuario",
+    "id": "0f13db49-44a9-4cc8-b90f-5655489263aa",
     "nome": "Maria Silva",
     "cpf": "12345678900",
     "email": "maria@email.com",
@@ -141,29 +207,52 @@ Resposta de sucesso:
 }
 ```
 
-Regras aplicadas:
+Erros esperados:
 
-- Busca usuario por e-mail ou CPF.
-- Valida senha usando bcrypt.
-- Verifica se a conta esta ativa.
-- Retorna token JWT.
-- Retorna dados basicos do usuario sem senha.
+| Status | Quando acontece              |
+| ------ | ---------------------------- |
+| `400`  | Body invalido.               |
+| `401`  | E-mail/CPF ou senha invalidos. |
+| `403`  | Usuario existe, mas esta inativo. |
+
+Exemplo para o frontend:
+
+```ts
+const response = await fetch('http://localhost:3000/auth/login', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    emailOuCpf: 'cliente@email.com',
+    senha: 'senha123',
+  }),
+});
+
+const data = await response.json();
+
+if (!response.ok) {
+  throw new Error(data.message ?? 'Erro ao fazer login.');
+}
+
+localStorage.setItem('accessToken', data.accessToken);
+```
 
 ### GET `/auth/me`
 
 Retorna os dados do usuario autenticado.
 
-Esta rota exige token JWT no header:
+Header obrigatorio:
 
 ```http
 Authorization: Bearer seu_token_jwt
 ```
 
-Resposta de sucesso:
+Resposta de sucesso, status `200`:
 
 ```json
 {
-  "id": "uuid-do-usuario",
+  "id": "0f13db49-44a9-4cc8-b90f-5655489263aa",
   "nome": "Maria Silva",
   "cpf": "12345678900",
   "email": "maria@email.com",
@@ -174,32 +263,46 @@ Resposta de sucesso:
 }
 ```
 
+Erro esperado:
+
+| Status | Quando acontece           |
+| ------ | ------------------------- |
+| `401`  | Token ausente ou invalido. |
+
+Exemplo para o frontend:
+
+```ts
+const token = localStorage.getItem('accessToken');
+
+const response = await fetch('http://localhost:3000/auth/me', {
+  headers: {
+    Authorization: `Bearer ${token}`,
+  },
+});
+
+const user = await response.json();
+```
+
+## Observacoes Para a Tela de Cadastro
+
+Fluxo recomendado:
+
+1. Usuario preenche nome, CPF, e-mail, telefone opcional e senha.
+2. Frontend chama `POST /auth/register`.
+3. Se receber `201`, mostrar sucesso e redirecionar para login.
+4. Se receber `409`, mostrar que CPF ou e-mail ja esta cadastrado.
+5. Se receber `400`, mostrar erro de validacao.
+6. Depois do cadastro, o usuario pode fazer login em `POST /auth/login`.
+
+O cadastro nao faz login automaticamente. A tela de login continua sendo responsavel por obter e salvar o token JWT.
+
 ## Scripts Disponiveis
 
-| Script                      | Descricao                                             |
-| --------------------------- | ----------------------------------------------------- |
+| Script                    | Descricao                                             |
+| ------------------------- | ----------------------------------------------------- |
 | `npm run start`           | Inicia a aplicacao.                                   |
 | `npm run start:dev`       | Inicia a aplicacao em modo desenvolvimento com watch. |
 | `npm run build`           | Compila o projeto.                                    |
-| `npm run start:prod`      | Executa a versao compilada em `dist`.               |
+| `npm run start:prod`      | Executa a versao compilada em `dist`.                 |
 | `npm run prisma:generate` | Gera o Prisma Client.                                 |
 | `npm run format`          | Formata arquivos TypeScript e Prisma com Prettier.    |
-
-## Observacoes para Desenvolvimento
-
-- O `PrismaService` nao forca conexao com o banco ao iniciar a aplicacao, permitindo abrir o Swagger mesmo sem PostgreSQL em execucao.
-- As rotas que consultam usuario exigem banco configurado corretamente.
-- Nao ha endpoint de cadastro nesta entrega.
-- Senhas devem estar salvas no banco ja criptografadas com bcrypt.
-
-## Melhorias futuras para finalizar o cadastro de novos usuários e a tela de login
-
-Para concluir a integração da tela de cadastro com o frontend, ainda será necessário implementar o endpoint de cadastro de usuários no backend.
-
-O outro desenvolvedor backend ficará responsável por criar o endpoint `POST /auth/register` ou `POST /users`, recebendo nome, CPF, e-mail, telefone e senha. Esse endpoint deve validar os campos obrigatórios, impedir cadastro com CPF ou e-mail já existente, criptografar a senha com bcrypt antes de salvar no banco e retornar os dados do usuário criado sem expor a senha.
-
-Também será necessário documentar esse endpoint no Swagger, informando o formato da requisição, as respostas de sucesso e os possíveis erros.
-
-Após isso, o fluxo completo poderá ser testado: cadastro de usuário, login em `POST /auth/login` e acesso ao `GET /auth/me` com token JWT.
-
-Com essa etapa concluída pelo outro desenvolvedor backend, os desenvolvedores frontend já terão os endpoints necessários para criar e integrar as telas de cadastro e login.
