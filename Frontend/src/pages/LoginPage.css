@@ -1,0 +1,394 @@
+/* ================================
+   LoginPage — Banco Litoral
+   Paleta: azul-marinho profundo + verde-neon vibrante
+   ================================ */
+
+:root {
+  --navy: #0b1628;
+  --navy-mid: #122040;
+  --navy-light: #1c3160;
+  --green: #00e5a0;
+  --green-dim: #00b87e;
+  --white: #ffffff;
+  --off-white: #f4f6fb;
+  --text-main: #0d1f3c;
+  --text-muted: #6b7a99;
+  --border: #dde3f0;
+  --input-bg: #f8fafd;
+  --error: #e84040;
+  --error-bg: #fff0f0;
+  --radius: 12px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.login-root {
+  display: flex;
+  min-height: 100vh;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--off-white);
+}
+
+/* ---- Painel esquerdo ---- */
+.login-panel {
+  position: relative;
+  width: 45%;
+  background: var(--navy);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.login-panel__content {
+  position: relative;
+  z-index: 2;
+  padding: 56px 52px;
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+  max-width: 420px;
+}
+
+.login-panel__tagline h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--white);
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  margin-bottom: 16px;
+}
+
+.login-panel__tagline p {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.6;
+}
+
+/* Logo */
+.bank-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bank-logo__icon {
+  color: var(--green);
+  display: flex;
+  align-items: center;
+}
+
+.bank-logo__name {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--white);
+  letter-spacing: -0.03em;
+}
+
+/* Stats */
+.login-panel__stats {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 24px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat__value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--green);
+  letter-spacing: -0.02em;
+}
+
+.stat__label {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.stat__divider {
+  width: 1px;
+  height: 36px;
+  background: rgba(255,255,255,0.12);
+}
+
+/* Background decorativo — linhas diagonais */
+.login-panel__bg-lines {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.bg-line {
+  position: absolute;
+  top: -20%;
+  left: calc(var(--i) * 14% - 5%);
+  width: 1px;
+  height: 140%;
+  background: rgba(0, 229, 160, 0.06);
+  transform: rotate(18deg);
+  transform-origin: top center;
+}
+
+/* ---- Painel direito — formulário ---- */
+.login-form-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+}
+
+.login-form-card {
+  width: 100%;
+  max-width: 420px;
+}
+
+.login-form-card__header {
+  margin-bottom: 36px;
+}
+
+.login-form-card__mobile-logo {
+  display: none;
+  margin-bottom: 28px;
+}
+
+.login-form-card__mobile-logo .bank-logo__name {
+  color: var(--text-main);
+}
+
+.login-form-card__mobile-logo .bank-logo__icon {
+  color: var(--navy);
+}
+
+.login-form-card__header h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.03em;
+  margin-bottom: 6px;
+}
+
+.login-form-card__header p {
+  font-size: 0.925rem;
+  color: var(--text-muted);
+}
+
+/* ---- Campos ---- */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field-group label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-main);
+  letter-spacing: 0.01em;
+}
+
+.label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.forgot-link {
+  background: none;
+  border: none;
+  font-size: 0.82rem;
+  color: var(--navy-light);
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+
+.forgot-link:hover {
+  color: var(--green-dim);
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 14px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+
+.input-wrapper input {
+  width: 100%;
+  padding: 13px 14px 13px 44px;
+  background: var(--input-bg);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-size: 0.925rem;
+  color: var(--text-main);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  font-family: inherit;
+}
+
+.input-wrapper input::placeholder {
+  color: #b0bcd4;
+}
+
+.input-wrapper input:focus {
+  border-color: var(--navy-light);
+  box-shadow: 0 0 0 3px rgba(28, 49, 96, 0.1);
+  background: var(--white);
+}
+
+.input-wrapper input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border-radius: 6px;
+  transition: color 0.15s;
+}
+
+.toggle-password:hover {
+  color: var(--text-main);
+}
+
+/* ---- Erro ---- */
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  background: var(--error-bg);
+  border: 1px solid rgba(232, 64, 64, 0.2);
+  border-radius: 10px;
+  font-size: 0.875rem;
+  color: var(--error);
+  font-weight: 500;
+}
+
+/* ---- Botão submit ---- */
+.btn-submit {
+  margin-top: 4px;
+  width: 100%;
+  padding: 14px;
+  background: var(--navy);
+  color: var(--white);
+  border: none;
+  border-radius: 10px;
+  font-size: 0.975rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: background 0.18s, transform 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50px;
+  font-family: inherit;
+}
+
+.btn-submit:hover:not(:disabled) {
+  background: var(--navy-light);
+}
+
+.btn-submit:active:not(:disabled) {
+  transform: scale(0.99);
+}
+
+.btn-submit:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-submit__loader {
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid rgba(255,255,255,0.25);
+  border-top-color: var(--white);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ---- Rodapé ---- */
+.login-footer {
+  margin-top: 28px;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 600;
+  color: var(--navy-light);
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s;
+}
+
+.link-btn:hover {
+  color: var(--green-dim);
+}
+
+/* ---- Responsivo ---- */
+@media (max-width: 768px) {
+  .login-panel {
+    display: none;
+  }
+
+  .login-form-card__mobile-logo {
+    display: flex;
+  }
+
+  .login-form-card__header h1 {
+    font-size: 1.5rem;
+  }
+}

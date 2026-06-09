@@ -1,0 +1,107 @@
+.dashboard-root {
+  min-height: 100vh;
+  background: #f4f6fb;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 32px;
+  background: #0b1628;
+  color: white;
+}
+
+.dashboard-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: white;
+  letter-spacing: -0.02em;
+}
+
+.dashboard-logo svg {
+  color: #00e5a0;
+}
+
+.dashboard-user {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.7);
+}
+
+.btn-logout {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: white;
+  padding: 7px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+
+.btn-logout:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+.dashboard-main {
+  padding: 48px 32px;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.welcome-card {
+  background: white;
+  border-radius: 14px;
+  padding: 36px;
+  margin-bottom: 24px;
+  border: 1px solid #dde3f0;
+}
+
+.welcome-tag {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #00b87e;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.welcome-card h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #0d1f3c;
+  letter-spacing: -0.03em;
+  margin-bottom: 10px;
+}
+
+.welcome-sub {
+  font-size: 0.9rem;
+  color: #6b7a99;
+}
+
+.status-badge {
+  background: #e6faf4;
+  color: #00875a;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.dashboard-hint {
+  font-size: 0.9rem;
+  color: #6b7a99;
+  text-align: center;
+  padding: 24px;
+  background: white;
+  border-radius: 12px;
+  border: 1px dashed #c8d3e8;
+}
