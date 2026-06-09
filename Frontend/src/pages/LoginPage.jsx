@@ -61,7 +61,7 @@ function BankLogo() {
   );
 }
 
-export default function LoginPage() {
+export default function LoginPage({ onOpenRegister }) {
   const { signIn } = useAuth();
   const [identifier, setIdentifier] = useState('');
   const [senha, setSenha] = useState('');
@@ -213,7 +213,9 @@ export default function LoginPage() {
 
           <p className="login-footer">
             Ainda não tem conta?{' '}
-            <button type="button" className="link-btn">Abrir conta grátis</button>
+            <button type="button" className="link-btn" onClick={onOpenRegister}>
+              Abrir conta grátis
+            </button>
           </p>
         </div>
       </main>

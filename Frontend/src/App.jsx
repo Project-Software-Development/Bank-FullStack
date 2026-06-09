@@ -1,9 +1,12 @@
+import { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
 import HomePage from './pages/HomePage';
+import RegisterPage from './pages/RegisterPage';
 
 function AppContent() {
   const { user, loading } = useAuth();
+  const [authScreen, setAuthScreen] = useState('login');
 
   if (loading) {
     return (
@@ -22,7 +25,15 @@ function AppContent() {
     );
   }
 
-  return user ? <HomePage /> : <LoginPage />;
+  if (user) {
+    return <HomePage />;
+  }
+
+  return authScreen === 'register' ? (
+    <RegisterPage onBackToLogin={() => setAuthScreen('login')} />
+  ) : (
+    <LoginPage onOpenRegister={() => setAuthScreen('register')} />
+  );
 }
 
 export default function App() {
