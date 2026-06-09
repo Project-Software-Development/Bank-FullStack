@@ -56,7 +56,7 @@
   color: #6b7a99;
 }
 
-form {
+.register-form-card form {
   display: grid;
   gap: 14px;
 }
@@ -115,7 +115,7 @@ form {
   color: #0d1f3c;
 }
 
-.feedback-banner {
+.register-feedback-banner {
   border-radius: 10px;
   border: 1px solid #cfe0ff;
   background: #f1f6ff;
@@ -124,7 +124,16 @@ form {
   font-size: 0.86rem;
 }
 
-.btn-submit {
+.register-error-banner {
+  border-radius: 10px;
+  border: 1px solid rgba(232, 64, 64, 0.3);
+  background: #fff1f1;
+  color: #b12525;
+  padding: 10px 12px;
+  font-size: 0.86rem;
+}
+
+.register-btn-submit {
   margin-top: 4px;
   border: none;
   border-radius: 10px;
@@ -136,8 +145,13 @@ form {
   cursor: pointer;
 }
 
-.btn-submit:hover {
+.register-btn-submit:hover:not(:disabled) {
   background: #1c3160;
+}
+
+.register-btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .register-footer {
@@ -147,7 +161,7 @@ form {
   font-size: 0.88rem;
 }
 
-.link-btn {
+.register-link-btn {
   border: none;
   background: transparent;
   color: #1c3160;
@@ -155,8 +169,13 @@ form {
   cursor: pointer;
 }
 
-.link-btn:hover {
+.register-link-btn:hover:not(:disabled) {
   color: #00b87e;
+}
+
+.register-link-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 @media (max-width: 900px) {

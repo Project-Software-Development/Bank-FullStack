@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { register } from '../services/authService';
 import './RegisterPage.css';
 
 function EyeIcon({ open }) {
@@ -15,13 +16,40 @@ function EyeIcon({ open }) {
   );
 }
 
-export default function RegisterPage({ onBackToLogin }) {
+export default function RegisterPage({ onBackToLogin, onRegisterSuccess }) {
+  const [nome, setNome] = useState('');
+  const [cpf, setCpf] = useState('');
+  const [email, setEmail] = useState('');
+  const [telefone, setTelefone] = useState('');
+  const [senha, setSenha] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState('');
+  const [error, setError] = useState('');
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
-    setFeedback('Tela de cadastro criada. A integração com backend será feita em seguida.');
+    setFeedback('');
+    setError('');
+    setLoading(true);
+
+    try {
+      await register({
+        nome,
+        cpf,
+        email,
+        telefone,
+        senha,
+      });
+
+      setFeedback('Cadastro realizado com sucesso! Você já pode fazer login.');
+      onRegisterSuccess(email.trim().toLowerCase());
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Não foi possível realizar o cadastro.';
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -31,7 +59,7 @@ export default function RegisterPage({ onBackToLogin }) {
           <h2>Abra sua conta digital</h2>
           <p>
             Preencha seus dados para criar uma conta no Banco Litoral.
-           
+            Seu cadastro será validado no backend.
           </p>
         </div>
       </aside>
@@ -46,17 +74,53 @@ export default function RegisterPage({ onBackToLogin }) {
           <form onSubmit={handleSubmit} noValidate>
             <div className="field-group">
               <label htmlFor="nome">Nome completo</label>
-              <input id="nome" type="text" placeholder="Maria Silva" required />
+              <input
+                id="nome"
+                type="text"
+                placeholder="Maria Silva"
+                value={nome}
+                onChange={(event) => setNome(event.target.value)}
+                disabled={loading}
+                required
+              />
             </div>
 
             <div className="field-group">
               <label htmlFor="cpf">CPF</label>
-              <input id="cpf" type="text" placeholder="123.456.789-00" required />
+              <input
+                id="cpf"
+                type="text"
+                placeholder="123.456.789-00"
+                value={cpf}
+                onChange={(event) => setCpf(event.target.value)}
+                disabled={loading}
+                required
+              />
             </div>
 
             <div className="field-group">
               <label htmlFor="email">E-mail</label>
-              <input id="email" type="email" placeholder="maria@email.com" required />
+              <input
+                id="email"
+                type="email"
+                placeholder="maria@email.com"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                disabled={loading}
+                required
+              />
+            </div>
+
+            <div className="field-group">
+              <label htmlFor="telefone">Telefone (opcional)</label>
+              <input
+                id="telefone"
+                type="text"
+                placeholder="(98) 99999-9999"
+                value={telefone}
+                onChange={(event) => setTelefone(event.target.value)}
+                disabled={loading}
+              />
             </div>
 
             <div className="field-group">
@@ -66,6 +130,9 @@ export default function RegisterPage({ onBackToLogin }) {
                   id="senha-cadastro"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Mínimo 6 caracteres"
+                  value={senha}
+                  onChange={(event) => setSenha(event.target.value)}
+                  disabled={loading}
                   required
                 />
                 <button
@@ -73,27 +140,34 @@ export default function RegisterPage({ onBackToLogin }) {
                   className="toggle-password"
                   onClick={() => setShowPassword((current) => !current)}
                   aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                  disabled={loading}
                 >
                   <EyeIcon open={showPassword} />
                 </button>
               </div>
             </div>
 
-            <div className="field-group">
-              <label htmlFor="nascimento">Data de nascimento</label>
-              <input id="nascimento" type="date" required />
-            </div>
+            {error && <div className="register-error-banner">{error}</div>}
 
-            {feedback && <div className="feedback-banner">{feedback}</div>}
+            {feedback && <div className="register-feedback-banner">{feedback}</div>}
 
-            <button type="submit" className="btn-submit">
-              Continuar cadastro
+            <button
+              type="submit"
+              className="register-btn-submit"
+              disabled={loading || !nome.trim() || !cpf.trim() || !email.trim() || !senha}
+            >
+              {loading ? 'Cadastrando...' : 'Continuar cadastro'}
             </button>
           </form>
 
           <p className="register-footer">
             Já tem conta?{' '}
-            <button type="button" className="link-btn" onClick={onBackToLogin}>
+            <button
+              type="button"
+              className="register-link-btn"
+              onClick={onBackToLogin}
+              disabled={loading}
+            >
               Voltar para login
             </button>
           </p>

@@ -61,18 +61,20 @@ function BankLogo() {
   );
 }
 
-export default function LoginPage({ onOpenRegister }) {
+export default function LoginPage({ onOpenRegister, initialIdentifier = '', noticeMessage = '' }) {
   const { signIn } = useAuth();
-  const [identifier, setIdentifier] = useState('');
+  const [identifier, setIdentifier] = useState(initialIdentifier);
   const [senha, setSenha] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState(noticeMessage);
 
   async function handleSubmit(e) {
     e.preventDefault();
     if (!identifier.trim() || !senha) return;
     setError('');
+    setNotice('');
     setLoading(true);
     try {
       const data = await login(identifier.trim(), senha);
@@ -129,6 +131,8 @@ export default function LoginPage({ onOpenRegister }) {
           </div>
 
           <form onSubmit={handleSubmit} noValidate>
+            {notice && <div className="notice-banner">{notice}</div>}
+
             <div className="field-group">
               <label htmlFor="identifier">E-mail ou CPF</label>
               <div className="input-wrapper">

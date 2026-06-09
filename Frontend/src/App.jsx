@@ -7,6 +7,8 @@ import RegisterPage from './pages/RegisterPage';
 function AppContent() {
   const { user, loading } = useAuth();
   const [authScreen, setAuthScreen] = useState('login');
+  const [prefilledLogin, setPrefilledLogin] = useState('');
+  const [loginNotice, setLoginNotice] = useState('');
 
   if (loading) {
     return (
@@ -29,10 +31,28 @@ function AppContent() {
     return <HomePage />;
   }
 
+  const loginViewKey = `${prefilledLogin}|${loginNotice}`;
+
   return authScreen === 'register' ? (
-    <RegisterPage onBackToLogin={() => setAuthScreen('login')} />
+    <RegisterPage
+      onBackToLogin={() => setAuthScreen('login')}
+      onRegisterSuccess={(email) => {
+        setPrefilledLogin(email);
+        setLoginNotice('Cadastro concluído! Faça login com seus dados.');
+        setAuthScreen('login');
+      }}
+    />
   ) : (
-    <LoginPage onOpenRegister={() => setAuthScreen('register')} />
+    <LoginPage
+      key={loginViewKey}
+      onOpenRegister={() => {
+        setLoginNotice('');
+        setPrefilledLogin('');
+        setAuthScreen('register');
+      }}
+      initialIdentifier={prefilledLogin}
+      noticeMessage={loginNotice}
+    />
   );
 }
 

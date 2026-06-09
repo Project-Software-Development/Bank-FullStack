@@ -58,3 +58,31 @@ export async function getMe(token) {
 
   return response.json();
 }
+
+export async function register({ nome, cpf, email, telefone, senha }) {
+  let response;
+  try {
+    response = await fetch(`${API_BASE_URL}/auth/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ nome, cpf, email, telefone, senha }),
+    });
+  } catch {
+    throw new Error('Não foi possível conectar ao servidor. Verifique se o backend está rodando.');
+  }
+
+  if (!response.ok) {
+    const error = await parseJsonSafely(response);
+    if (response.status === 409) {
+      throw new Error(error.message || 'CPF ou e-mail já cadastrado.');
+    }
+    if (response.status === 400) {
+      throw new Error(error.message || 'Dados de cadastro inválidos.');
+    }
+    throw new Error(error.message || 'Não foi possível concluir o cadastro.');
+  }
+
+  return response.json();
+}

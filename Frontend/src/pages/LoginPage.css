@@ -307,6 +307,19 @@ form {
   font-weight: 500;
 }
 
+.notice-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  background: #eef6ff;
+  border: 1px solid #cfe0ff;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  color: #2a4c7d;
+  font-weight: 500;
+}
+
 /* ---- Botão submit ---- */
 .btn-submit {
   margin-top: 4px;
