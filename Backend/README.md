@@ -39,6 +39,7 @@ Configure as variaveis de ambiente:
 ```env
 DATABASE_URL="postgresql://user:password@localhost:5432/api_banco_digital?schema=public"
 JWT_SECRET="troque-este-segredo-em-producao"
+FRONTEND_ORIGIN="http://localhost:5173"
 ```
 
 Gere o Prisma Client:
@@ -81,9 +82,7 @@ http://localhost:3001
 ```
 
 ## Modelo de Usuario
-
 Tabela `User` usada pelo Prisma:
-
 | Campo           | Tipo      | Observacao                                      |
 | --------------- | --------- | ----------------------------------------------- |
 | `id`            | `String`  | UUID gerado automaticamente.                    |
