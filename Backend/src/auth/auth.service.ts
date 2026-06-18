@@ -11,6 +11,7 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { BasicUser, JwtPayload } from './auth.types';
+import { Role } from './enums/role.enum';
 
 @Injectable()
 export class AuthService {
@@ -41,7 +42,7 @@ export class AuthService {
       sub: user.id,
       email: user.email,
       cpf: user.cpf,
-      tipo: user.tipo,
+      tipo: basicUser.tipo,
     };
 
     return {
@@ -67,7 +68,7 @@ export class AuthService {
           email,
           telefone,
           senha,
-          tipo: 'CLIENTE',
+          tipo: Role.CLIENTE,
           statusConta: 'ATIVO',
         },
       });
@@ -149,7 +150,7 @@ export class AuthService {
       cpf: user.cpf,
       email: user.email,
       telefone: user.telefone,
-      tipo: user.tipo,
+      tipo: user.tipo as Role,
       statusConta: user.statusConta,
       createdAt: user.createdAt,
     };
