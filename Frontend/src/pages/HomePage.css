@@ -120,6 +120,25 @@
   gap: 14px;
 }
 
+.home-feedback {
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  font-size: 0.9rem;
+}
+
+.home-feedback--loading {
+  background: #eef2ff;
+  border: 1px solid #d8e1ff;
+  color: #334b7a;
+}
+
+.home-feedback--error {
+  background: #fff2f2;
+  border: 1px solid #f5cccc;
+  color: #b3261e;
+}
+
 .fake-card {
   background: #ffffff;
   border: 1px solid #dde3f0;
