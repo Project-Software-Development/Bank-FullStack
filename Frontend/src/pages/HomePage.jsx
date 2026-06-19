@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { getDashboardMe } from '../services/dashboardService';
 import './HomePage.css';
 
 function EyeIcon({ open }) {
@@ -17,14 +18,69 @@ function EyeIcon({ open }) {
 }
 
 export default function HomePage() {
-  const { user, signOut } = useAuth();
+  const { user, token, signOut } = useAuth();
   const [showAccountId, setShowAccountId] = useState(false);
+  const [dashboardLoading, setDashboardLoading] = useState(true);
+  const [dashboardError, setDashboardError] = useState('');
+  const [dashboardData, setDashboardData] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadDashboard() {
+      if (!token) {
+        if (isMounted) {
+          setDashboardLoading(false);
+        }
+        return;
+      }
+
+      setDashboardLoading(true);
+      setDashboardError('');
+
+      try {
+        const data = await getDashboardMe(token);
+        if (isMounted) {
+          setDashboardData(data);
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Erro ao carregar o dashboard.';
+        if (message === 'Sessao expirada. Faca login novamente.') {
+          signOut();
+          return;
+        }
+        if (isMounted) {
+          setDashboardError(message);
+        }
+      } finally {
+        if (isMounted) {
+          setDashboardLoading(false);
+        }
+      }
+    }
+
+    loadDashboard();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [token, signOut]);
+
   const firstName = user?.nome?.split(' ')[0] || 'Cliente';
-  const accountNumber = `0001-${(user?.cpf || '00000000000').slice(-6)}`;
-  const createdAt = user?.createdAt
-    ? new Date(user.createdAt).toLocaleDateString('pt-BR')
+  const account = dashboardData?.conta ?? null;
+  const accountNumber = account?.numero ?? '-';
+  const accountStatus = account?.status ?? 'Conta nao vinculada';
+  const createdAt = account?.dataCriacao
+    ? new Date(account.dataCriacao).toLocaleDateString('pt-BR')
     : '-';
-  const fakeBalance = 'R$ 8.450,90';
+  const accountBalance = account?.saldo ?? null;
+  const formattedBalance =
+    typeof accountBalance === 'number'
+      ? new Intl.NumberFormat('pt-BR', {
+          style: 'currency',
+          currency: 'BRL',
+        }).format(accountBalance)
+      : 'Saldo indisponivel';
   const hiddenAccountId = user?.id ? '••••••••••••••••••••' : '-';
 
   return (
@@ -74,8 +130,20 @@ export default function HomePage() {
       <main className="home-content">
         <header className="home-content__header">
           <h2>Home do Banco</h2>
-          <p>Campos fictícios para evoluir a aplicação.</p>
+          <p>Dados reais da conta vinculada ao usuario autenticado.</p>
         </header>
+
+        {dashboardError && (
+          <div className="home-feedback home-feedback--error" role="alert">
+            {dashboardError}
+          </div>
+        )}
+
+        {dashboardLoading && (
+          <div className="home-feedback home-feedback--loading">
+            Carregando dados do dashboard...
+          </div>
+        )}
 
         <section className="home-grid">
           <article className="fake-card fake-card--wide">
@@ -83,7 +151,7 @@ export default function HomePage() {
             <dl className="account-data-grid">
               <div>
                 <dt className="id-label">
-                  ID da conta
+                  ID do usuario
                   <button
                     type="button"
                     className="id-visibility-btn"
@@ -101,52 +169,57 @@ export default function HomePage() {
               </div>
               <div>
                 <dt>Saldo</dt>
-                <dd>{fakeBalance}</dd>
+                <dd>{formattedBalance}</dd>
               </div>
               <div>
                 <dt>Status</dt>
-                <dd>{user?.statusConta || '-'}</dd>
+                <dd>{accountStatus}</dd>
               </div>
               <div>
                 <dt>Data de criação</dt>
                 <dd>{createdAt}</dd>
               </div>
             </dl>
+            {!account && (
+              <p className="fake-card__hint">
+                Conta ainda nao vinculada. Assim que a conta for criada, os dados aparecerao aqui.
+              </p>
+            )}
           </article>
 
           <article className="fake-card">
             <p className="fake-card__label">Saldo em conta</p>
-            <h3>{fakeBalance}</h3>
-            <span className="fake-card__hint">Atualizado há 2 min</span>
+            <h3>{formattedBalance}</h3>
+            <span className="fake-card__hint">
+              {account ? 'Atualizado com dados do backend' : 'Sem conta vinculada no momento'}
+            </span>
           </article>
 
           <article className="fake-card">
             <p className="fake-card__label">Cartão de crédito</p>
-            <h3>R$ 1.230,00</h3>
-            <span className="fake-card__hint">Fatura fecha em 12 dias</span>
+            <h3>Em breve</h3>
+            <span className="fake-card__hint">Aguardando endpoint de cartao</span>
           </article>
 
           <article className="fake-card fake-card--wide">
             <p className="fake-card__label">Últimas movimentações</p>
             <ul>
-              <li>Pix recebido - R$ 340,00</li>
-              <li>Débito mercado - R$ 89,90</li>
-              <li>Transferência enviada - R$ 120,00</li>
+              <li>Aguardando endpoint de extrato.</li>
+              <li>Esta area sera preenchida com movimentacoes reais.</li>
             </ul>
           </article>
 
           <article className="fake-card">
             <p className="fake-card__label">Próximos pagamentos</p>
             <ul>
-              <li>Energia - R$ 167,40</li>
-              <li>Internet - R$ 119,90</li>
+              <li>Aguardando endpoint de pagamentos.</li>
             </ul>
           </article>
 
           <article className="fake-card">
             <p className="fake-card__label">Objetivo mensal</p>
-            <h3>42%</h3>
-            <span className="fake-card__hint">Meta de economia</span>
+            <h3>Em breve</h3>
+            <span className="fake-card__hint">Aguardando endpoint de metas</span>
           </article>
         </section>
       </main>
