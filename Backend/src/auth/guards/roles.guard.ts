@@ -31,7 +31,15 @@ export class RolesGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<RequestWithUser>();
     const user = request.user;
 
-    if (!user || !requiredRoles.includes(user.tipo)) {
+    if (!user) {
+      throw new ForbiddenException('Usuario sem permissao para este recurso.');
+    }
+
+    if (user.tipo === Role.ADMINISTRADOR) {
+      return true;
+    }
+
+    if (!requiredRoles.includes(user.tipo)) {
       throw new ForbiddenException('Usuario sem permissao para este recurso.');
     }
 
