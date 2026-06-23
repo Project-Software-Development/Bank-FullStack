@@ -15,6 +15,8 @@ import { Role } from './enums/role.enum';
 
 @Injectable()
 export class AuthService {
+  private static readonly ACCOUNT_NUMBER_RETRY_LIMIT = 5;
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
@@ -60,30 +62,49 @@ export class AuthService {
 
     const senha = await bcrypt.hash(registerDto.senha, 10);
 
-    try {
-      const user = await this.prisma.user.create({
-        data: {
-          nome: registerDto.nome.trim(),
-          cpf,
-          email,
-          telefone,
-          senha,
-          tipo: Role.CLIENTE,
-          statusConta: 'ATIVO',
-        },
-      });
+    for (let attempt = 0; attempt < AuthService.ACCOUNT_NUMBER_RETRY_LIMIT; attempt++) {
+      try {
+        const user = await this.prisma.$transaction(async (tx) => {
+          const createdUser = await tx.user.create({
+            data: {
+              nome: registerDto.nome.trim(),
+              cpf,
+              email,
+              telefone,
+              senha,
+              tipo: Role.CLIENTE,
+              statusConta: 'ATIVO',
+            },
+          });
 
-      return this.toBasicUser(user);
-    } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2002'
-      ) {
-        throw new ConflictException('CPF ou e-mail ja cadastrado.');
+          await tx.conta.create({
+            data: {
+              numero: this.generateAccountNumber(),
+              userId: createdUser.id,
+            },
+          });
+
+          return createdUser;
+        });
+
+        return this.toBasicUser(user);
+      } catch (error) {
+        if (this.isUniqueConstraintError(error, ['cpf', 'email'])) {
+          throw new ConflictException('CPF ou e-mail ja cadastrado.');
+        }
+
+        if (
+          this.isUniqueConstraintError(error, ['numero']) &&
+          attempt < AuthService.ACCOUNT_NUMBER_RETRY_LIMIT - 1
+        ) {
+          continue;
+        }
+
+        throw error;
       }
-
-      throw error;
     }
+
+    throw new ConflictException('Nao foi possivel gerar numero de conta unico.');
   }
 
   async findById(id: string): Promise<BasicUser | null> {
@@ -132,6 +153,28 @@ export class AuthService {
 
   private isUserActive(statusConta: string): boolean {
     return ['ATIVO', 'ATIVA', 'ACTIVE'].includes(statusConta.toUpperCase());
+  }
+
+  private generateAccountNumber(): string {
+    const numericPart = String(Math.floor(10000000 + Math.random() * 90000000));
+    const checksum = Number(numericPart) % 10;
+    return `${numericPart}-${checksum}`;
+  }
+
+  private isUniqueConstraintError(error: unknown, possibleTargets: string[]): boolean {
+    if (
+      !(error instanceof Prisma.PrismaClientKnownRequestError) ||
+      error.code !== 'P2002'
+    ) {
+      return false;
+    }
+
+    const target = error.meta?.target;
+    if (!Array.isArray(target)) {
+      return false;
+    }
+
+    return possibleTargets.some((field) => target.includes(field));
   }
 
   private toBasicUser(user: {
