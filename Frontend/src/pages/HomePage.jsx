@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getDashboardMe } from '../services/dashboardService';
+import bankLogo from '../assets/pds-bank-logo.png';
 import './HomePage.css';
 
 function EyeIcon({ open }) {
@@ -87,8 +88,8 @@ export default function HomePage() {
     <div className="home-root">
       <aside className="home-sidebar">
         <div className="home-sidebar__brand">
-          <h1>Banco Litoral</h1>
-          <p>Painel principal</p>
+          <img src={bankLogo} alt="PDS Bank" className="home-sidebar__logo" />
+        
         </div>
 
         <section className="home-sidebar__card">
@@ -129,7 +130,7 @@ export default function HomePage() {
 
       <main className="home-content">
         <header className="home-content__header">
-          <h2>Home do Banco</h2>
+          <h2>Painel do cliente</h2>
           <p>Dados reais da conta vinculada ao usuario autenticado.</p>
         </header>
 

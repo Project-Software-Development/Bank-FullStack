@@ -2,12 +2,12 @@
   min-height: 100vh;
   display: grid;
   grid-template-columns: 320px 1fr;
-  background: #f4f6fb;
+  background: #f1f4f9;
   font-family: 'Segoe UI', system-ui, sans-serif;
 }
 
 .home-sidebar {
-  background: #0b1628;
+  background: #1b2f67;
   color: #e9eefb;
   padding: 26px 20px;
   display: flex;
@@ -15,19 +15,36 @@
   gap: 16px;
 }
 
+.home-sidebar__brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
 .home-sidebar__brand h1 {
   font-size: 1.2rem;
   letter-spacing: -0.02em;
 }
 
+.home-sidebar__logo {
+  width: min(180px, 100%);
+  height: auto;
+  object-fit: contain;
+  border-radius: 10px;
+  box-shadow: 0 10px 24px rgba(9, 22, 53, 0.3);
+}
+
 .home-sidebar__brand p {
   font-size: 0.83rem;
   color: rgba(255, 255, 255, 0.58);
+  text-align: center;
 }
 
 .home-sidebar__card {
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 12px;
   padding: 14px;
 }
@@ -36,7 +53,7 @@
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.07em;
-  color: #00d89b;
+  color: #9db3db;
   margin-bottom: 8px;
 }
 
@@ -51,8 +68,8 @@
 }
 
 .status-badge {
-  background: #e6faf4;
-  color: #00875a;
+  background: #e8edf6;
+  color: #2f4c86;
   border-radius: 999px;
   padding: 2px 8px;
   font-size: 0.78rem;
@@ -104,12 +121,12 @@
 }
 
 .home-content__header h2 {
-  color: #0d1f3c;
+  color: #1f2f57;
   font-size: 1.5rem;
 }
 
 .home-content__header p {
-  color: #6b7a99;
+  color: #5f6f91;
   margin-top: 6px;
   margin-bottom: 18px;
 }
@@ -128,9 +145,9 @@
 }
 
 .home-feedback--loading {
-  background: #eef2ff;
-  border: 1px solid #d8e1ff;
-  color: #334b7a;
+  background: #edf3fb;
+  border: 1px solid #d1ddf0;
+  color: #2f4c86;
 }
 
 .home-feedback--error {
@@ -141,7 +158,7 @@
 
 .fake-card {
   background: #ffffff;
-  border: 1px solid #dde3f0;
+  border: 1px solid #d2dced;
   border-radius: 12px;
   padding: 18px;
 }
@@ -154,27 +171,27 @@
   font-size: 0.74rem;
   text-transform: uppercase;
   letter-spacing: 0.07em;
-  color: #6b7a99;
+  color: #5f6f91;
   margin-bottom: 10px;
 }
 
 .fake-card h3 {
   font-size: 1.4rem;
-  color: #0d1f3c;
+  color: #1f2f57;
 }
 
 .fake-card__hint {
   display: inline-block;
   margin-top: 8px;
   font-size: 0.8rem;
-  color: #6b7a99;
+  color: #5f6f91;
 }
 
 .fake-card ul {
   list-style: none;
   display: grid;
   gap: 8px;
-  color: #0d1f3c;
+  color: #1f2f57;
   font-size: 0.9rem;
 }
 
@@ -193,7 +210,7 @@
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #6b7a99;
+  color: #5f6f91;
 }
 
 .id-label {
@@ -205,7 +222,7 @@
 .id-visibility-btn {
   border: none;
   background: transparent;
-  color: #4c628f;
+  color: #4f6fa6;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -214,12 +231,12 @@
 }
 
 .id-visibility-btn:hover {
-  color: #0d1f3c;
+  color: #1f2f57;
 }
 
 .account-data-grid dd {
   font-size: 0.92rem;
-  color: #0d1f3c;
+  color: #1f2f57;
   word-break: break-word;
 }
 
