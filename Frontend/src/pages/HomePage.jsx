@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getDashboardMe } from '../services/dashboardService';
+import { getHistorico, transferir } from '../services/transacoesService';
 import bankLogo from '../assets/pds-bank-logo.png';
 import './HomePage.css';
 
@@ -24,25 +25,43 @@ export default function HomePage() {
   const [dashboardLoading, setDashboardLoading] = useState(true);
   const [dashboardError, setDashboardError] = useState('');
   const [dashboardData, setDashboardData] = useState(null);
+  const [historicoLoading, setHistoricoLoading] = useState(true);
+  const [historicoError, setHistoricoError] = useState('');
+  const [historico, setHistorico] = useState([]);
+  const [transferenciaForm, setTransferenciaForm] = useState({
+    contaDestinoNumero: '',
+    valor: '',
+  });
+  const [transferenciaLoading, setTransferenciaLoading] = useState(false);
+  const [transferenciaError, setTransferenciaError] = useState('');
+  const [transferenciaSuccess, setTransferenciaSuccess] = useState('');
 
   useEffect(() => {
     let isMounted = true;
 
-    async function loadDashboard() {
+    async function loadDashboardAndHistorico() {
       if (!token) {
         if (isMounted) {
           setDashboardLoading(false);
+          setHistoricoLoading(false);
         }
         return;
       }
 
       setDashboardLoading(true);
+      setHistoricoLoading(true);
       setDashboardError('');
+      setHistoricoError('');
 
       try {
-        const data = await getDashboardMe(token);
+        const [dashboardResponse, historicoResponse] = await Promise.all([
+          getDashboardMe(token),
+          getHistorico(token),
+        ]);
+
         if (isMounted) {
-          setDashboardData(data);
+          setDashboardData(dashboardResponse);
+          setHistorico(historicoResponse.itens ?? []);
         }
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Erro ao carregar o dashboard.';
@@ -52,15 +71,17 @@ export default function HomePage() {
         }
         if (isMounted) {
           setDashboardError(message);
+          setHistoricoError(message);
         }
       } finally {
         if (isMounted) {
           setDashboardLoading(false);
+          setHistoricoLoading(false);
         }
       }
     }
 
-    loadDashboard();
+    loadDashboardAndHistorico();
 
     return () => {
       isMounted = false;
@@ -83,6 +104,60 @@ export default function HomePage() {
         }).format(accountBalance)
       : 'Saldo indisponivel';
   const hiddenAccountId = user?.id ? '••••••••••••••••••••' : '-';
+
+  function formatCurrency(value) {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(value);
+  }
+
+  function formatDate(value) {
+    return new Date(value).toLocaleString('pt-BR');
+  }
+
+  async function handleTransferenciaSubmit(event) {
+    event.preventDefault();
+    if (!token || !transferenciaForm.contaDestinoNumero.trim() || !transferenciaForm.valor) {
+      return;
+    }
+
+    const valorNumerico = Number(String(transferenciaForm.valor).replace(',', '.'));
+    if (!Number.isFinite(valorNumerico) || valorNumerico <= 0) {
+      setTransferenciaError('Informe um valor valido para transferencia.');
+      return;
+    }
+
+    setTransferenciaLoading(true);
+    setTransferenciaError('');
+    setTransferenciaSuccess('');
+
+    try {
+      const response = await transferir(token, {
+        contaDestinoNumero: transferenciaForm.contaDestinoNumero.trim(),
+        valor: valorNumerico,
+      });
+
+      const [dashboardResponse, historicoResponse] = await Promise.all([
+        getDashboardMe(token),
+        getHistorico(token),
+      ]);
+
+      setDashboardData(dashboardResponse);
+      setHistorico(historicoResponse.itens ?? []);
+      setTransferenciaForm({ contaDestinoNumero: '', valor: '' });
+      setTransferenciaSuccess(response.mensagem || 'Transferencia realizada com sucesso.');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Erro ao transferir valor.';
+      if (message === 'Sessao expirada. Faca login novamente.') {
+        signOut();
+        return;
+      }
+      setTransferenciaError(message);
+    } finally {
+      setTransferenciaLoading(false);
+    }
+  }
 
   return (
     <div className="home-root">
@@ -197,17 +272,93 @@ export default function HomePage() {
           </article>
 
           <article className="fake-card">
-            <p className="fake-card__label">Cartão de crédito</p>
-            <h3>Em breve</h3>
-            <span className="fake-card__hint">Aguardando endpoint de cartao</span>
+            <p className="fake-card__label">Enviar valor</p>
+            <form className="transfer-form" onSubmit={handleTransferenciaSubmit} noValidate>
+              <label htmlFor="conta-destino">
+                Conta destino
+                <input
+                  id="conta-destino"
+                  type="text"
+                  value={transferenciaForm.contaDestinoNumero}
+                  onChange={(event) =>
+                    setTransferenciaForm((current) => ({
+                      ...current,
+                      contaDestinoNumero: event.target.value,
+                    }))
+                  }
+                  placeholder="00012345-6"
+                  disabled={transferenciaLoading}
+                />
+              </label>
+              <label htmlFor="valor-transferencia">
+                Valor (R$)
+                <input
+                  id="valor-transferencia"
+                  type="text"
+                  value={transferenciaForm.valor}
+                  onChange={(event) =>
+                    setTransferenciaForm((current) => ({
+                      ...current,
+                      valor: event.target.value,
+                    }))
+                  }
+                  placeholder="100,00"
+                  disabled={transferenciaLoading}
+                />
+              </label>
+
+              {transferenciaError && (
+                <p className="transfer-feedback transfer-feedback--error">{transferenciaError}</p>
+              )}
+              {transferenciaSuccess && (
+                <p className="transfer-feedback transfer-feedback--success">{transferenciaSuccess}</p>
+              )}
+
+              <button
+                type="submit"
+                className="transfer-submit"
+                disabled={
+                  transferenciaLoading ||
+                  !transferenciaForm.contaDestinoNumero.trim() ||
+                  !transferenciaForm.valor.trim()
+                }
+              >
+                {transferenciaLoading ? 'Enviando...' : 'Transferir'}
+              </button>
+            </form>
           </article>
 
           <article className="fake-card fake-card--wide">
             <p className="fake-card__label">Últimas movimentações</p>
-            <ul>
-              <li>Aguardando endpoint de extrato.</li>
-              <li>Esta area sera preenchida com movimentacoes reais.</li>
-            </ul>
+            {historicoLoading ? (
+              <p className="fake-card__hint">Carregando historico...</p>
+            ) : historicoError ? (
+              <p className="fake-card__hint">{historicoError}</p>
+            ) : historico.length === 0 ? (
+              <p className="fake-card__hint">Nenhuma transacao registrada ate o momento.</p>
+            ) : (
+              <ul className="tx-list">
+                {historico.map((item) => (
+                  <li key={item.id} className="tx-item">
+                    <div className="tx-item__main">
+                      <strong>{item.direcao === 'SAIDA' ? 'Transferencia enviada' : 'Transferencia recebida'}</strong>
+                      <span>{item.descricao}</span>
+                      <span className="tx-item__meta">
+                        {item.direcao === 'SAIDA' ? 'Para' : 'De'} conta {item.contaContraparte} - {formatDate(item.data)}
+                      </span>
+                    </div>
+                    <span
+                      className={`tx-item__amount ${
+                        item.direcao === 'SAIDA' ? 'tx-item__amount--saida' : 'tx-item__amount--entrada'
+                      }`}
+                    >
+                      {item.direcao === 'SAIDA' ? '-' : '+'}
+                      {formatCurrency(item.valor)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </article>
 
           <article className="fake-card">

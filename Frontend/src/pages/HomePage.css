@@ -195,6 +195,124 @@
   font-size: 0.9rem;
 }
 
+.transfer-form {
+  display: grid;
+  gap: 10px;
+}
+
+.transfer-form label {
+  display: grid;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: #5f6f91;
+  font-weight: 600;
+}
+
+.transfer-form input {
+  border: 1px solid #d2dced;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  color: #1f2f57;
+  background: #f7f9fd;
+}
+
+.transfer-form input:focus {
+  outline: none;
+  border-color: #4f6fa6;
+  box-shadow: 0 0 0 3px rgba(79, 111, 166, 0.16);
+  background: #ffffff;
+}
+
+.transfer-submit {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: linear-gradient(135deg, #1b2f67 0%, #274687 100%);
+  color: #ffffff;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.transfer-submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.transfer-submit:hover:not(:disabled) {
+  background: linear-gradient(135deg, #274687 0%, #4f6fa6 100%);
+}
+
+.transfer-feedback {
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.transfer-feedback--error {
+  background: #fff2f2;
+  color: #b3261e;
+  border: 1px solid #f2c8c8;
+}
+
+.transfer-feedback--success {
+  background: #eef8f2;
+  color: #1f7a4d;
+  border: 1px solid #cde7d8;
+}
+
+.tx-list {
+  display: grid;
+  gap: 10px;
+}
+
+.tx-item {
+  border: 1px solid #d2dced;
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+  background: #f8fafd;
+}
+
+.tx-item__main {
+  display: grid;
+  gap: 2px;
+}
+
+.tx-item__main strong {
+  font-size: 0.86rem;
+  color: #1f2f57;
+}
+
+.tx-item__main span {
+  font-size: 0.8rem;
+  color: #5f6f91;
+}
+
+.tx-item__meta {
+  font-size: 0.74rem !important;
+  color: #7a89a9 !important;
+}
+
+.tx-item__amount {
+  font-size: 0.9rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.tx-item__amount--entrada {
+  color: #1f7a4d;
+}
+
+.tx-item__amount--saida {
+  color: #b3261e;
+}
+
 .account-data-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
