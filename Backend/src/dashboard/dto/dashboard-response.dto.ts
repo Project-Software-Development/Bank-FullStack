@@ -27,7 +27,7 @@ export class DashboardContaDto {
   @ApiProperty({ example: 1250.75 })
   saldo: number;
 
-  @ApiProperty({ example: 'ATIVO' })
+  @ApiProperty({ example: 'ATIVA' })
   status: string;
 
   @ApiProperty({ example: '2026-05-26T20:00:00.000Z' })

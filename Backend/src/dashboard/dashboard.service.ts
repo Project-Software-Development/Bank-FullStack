@@ -16,6 +16,14 @@ export class DashboardService {
         cpf: true,
         tipo: true,
         statusConta: true,
+        conta: {
+          select: {
+            numero: true,
+            saldo: true,
+            status: true,
+            createdAt: true,
+          },
+        },
       },
     });
 
@@ -24,8 +32,22 @@ export class DashboardService {
     }
 
     return {
-      usuario: user,
-      conta: null,
+      usuario: {
+        id: user.id,
+        nome: user.nome,
+        email: user.email,
+        cpf: user.cpf,
+        tipo: user.tipo,
+        statusConta: user.statusConta,
+      },
+      conta: user.conta
+        ? {
+            numero: user.conta.numero,
+            saldo: user.conta.saldo.toNumber(),
+            status: user.conta.status,
+            dataCriacao: user.conta.createdAt,
+          }
+        : null,
     };
   }
 }
