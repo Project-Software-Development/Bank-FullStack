@@ -1,10 +1,12 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -19,6 +21,8 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { Request } from 'express';
+import { BasicUser } from '../auth/auth.types';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/enums/role.enum';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -30,6 +34,10 @@ import {
   ListarUsuariosResponseDto,
 } from './dto/configuracoes-usuario-response.dto';
 import { ListarUsuariosQueryDto } from './dto/listar-usuarios-query.dto';
+
+type RequestWithUser = Request & {
+  user: BasicUser;
+};
 
 @ApiTags('Configuracoes')
 @ApiBearerAuth('JWT-auth')
@@ -58,7 +66,7 @@ export class ConfiguracoesController {
   @ApiQuery({
     name: 'statusConta',
     required: false,
-    enum: ['ATIVO', 'BLOQUEADO', 'INATIVO'],
+    enum: ['ATIVO', 'INATIVO'],
     description: 'Filtra usuarios pelo status da conta.',
   })
   @ApiQuery({
@@ -116,7 +124,7 @@ export class ConfiguracoesController {
   @ApiOperation({
     summary: 'Altera o status administrativo de um usuario.',
     description:
-      'Quando existir conta vinculada, o status da conta tambem sera atualizado para ATIVA, BLOQUEADA ou INATIVA conforme o novo status do usuario.',
+      'Quando existir conta vinculada, o status da conta tambem sera atualizado para ATIVA ou INATIVA conforme o novo status do usuario.',
   })
   @ApiParam({
     name: 'id',
@@ -128,7 +136,7 @@ export class ConfiguracoesController {
     type: ConfiguracoesUsuarioDto,
   })
   @ApiBadRequestResponse({
-    description: 'Body invalido. Use statusConta ATIVO, BLOQUEADO ou INATIVO.',
+    description: 'Body invalido. Use statusConta ATIVO ou INATIVO.',
   })
   @ApiUnauthorizedResponse({ description: 'Token invalido ou ausente.' })
   @ApiForbiddenResponse({
@@ -143,5 +151,31 @@ export class ConfiguracoesController {
       id,
       alterarStatusUsuarioDto,
     );
+  }
+
+  @Delete('usuarios/:id')
+  @ApiOperation({
+    summary: 'Exclui um usuario do sistema.',
+    description:
+      'Remove o usuario, a conta vinculada e as transacoes associadas a essa conta.',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'ID do usuario a ser excluido.',
+    example: '0f13db49-44a9-4cc8-b90f-5655489263aa',
+  })
+  @ApiOkResponse({
+    description: 'Usuario excluido com sucesso.',
+  })
+  @ApiBadRequestResponse({
+    description: 'Nao e permitido excluir o proprio usuario.',
+  })
+  @ApiUnauthorizedResponse({ description: 'Token invalido ou ausente.' })
+  @ApiForbiddenResponse({
+    description: 'Usuario sem permissao administrativa para este recurso.',
+  })
+  @ApiNotFoundResponse({ description: 'Usuario nao encontrado.' })
+  excluirUsuario(@Req() request: RequestWithUser, @Param('id') id: string) {
+    return this.configuracoesService.excluirUsuario(request.user.id, id);
   }
 }

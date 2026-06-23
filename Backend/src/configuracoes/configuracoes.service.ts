@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { AlterarStatusUsuarioDto } from './dto/alterar-status-usuario.dto';
@@ -118,6 +122,57 @@ export class ConfiguracoesService {
     return this.buscarUsuarioPorId(id);
   }
 
+  async excluirUsuario(adminId: string, id: string) {
+    if (adminId === id) {
+      throw new BadRequestException('Nao e permitido excluir o proprio usuario.');
+    }
+
+    const usuario = await this.prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        nome: true,
+        email: true,
+        conta: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    if (!usuario) {
+      throw new NotFoundException('Usuario nao encontrado.');
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      if (usuario.conta) {
+        await tx.transacao.deleteMany({
+          where: {
+            OR: [
+              { contaOrigemId: usuario.conta.id },
+              { contaDestinoId: usuario.conta.id },
+            ],
+          },
+        });
+
+        await tx.conta.delete({
+          where: { id: usuario.conta.id },
+        });
+      }
+
+      await tx.user.delete({
+        where: { id },
+      });
+    });
+
+    return {
+      mensagem: `Usuario ${usuario.nome} excluido com sucesso.`,
+      id: usuario.id,
+      email: usuario.email,
+    };
+  }
+
   private buildUsuarioWhere(
     query: ListarUsuariosQueryDto,
   ): Prisma.UserWhereInput {
@@ -145,10 +200,6 @@ export class ConfiguracoesService {
   private getContaStatusFromUsuarioStatus(statusConta: string): string | null {
     if (statusConta === 'ATIVO') {
       return 'ATIVA';
-    }
-
-    if (statusConta === 'BLOQUEADO') {
-      return 'BLOQUEADA';
     }
 
     if (statusConta === 'INATIVO') {

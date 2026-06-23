@@ -23,12 +23,12 @@ export class ListarUsuariosQueryDto {
   tipo?: Role;
 
   @ApiPropertyOptional({
-    enum: ['ATIVO', 'BLOQUEADO', 'INATIVO'],
+    enum: ['ATIVO', 'INATIVO'],
     example: 'ATIVO',
     description: 'Filtra usuarios pelo status da conta.',
   })
   @IsOptional()
-  @IsIn(['ATIVO', 'BLOQUEADO', 'INATIVO'])
+  @IsIn(['ATIVO', 'INATIVO'])
   statusConta?: string;
 
   @ApiPropertyOptional({
