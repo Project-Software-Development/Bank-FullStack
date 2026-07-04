@@ -13,11 +13,14 @@ import { BasicUser } from "../auth/auth.types";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { CreateNotificationDto } from "./dto/create-notification.dto";
 import { NotificationService } from "./notification.service";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 
 type RequestWithUser = Request & {
   user: BasicUser;
 };
 
+@ApiTags("Notifications")
+@ApiBearerAuth("JWT-auth")
 @Controller("notifications")
 @UseGuards(JwtAuthGuard)
 export class NotificationController {
@@ -40,7 +43,7 @@ export class NotificationController {
   }
 
   @Delete(":id")
-  deleteOne(@Req() request: RequestWithUser, @Param() id: string) {
+  deleteOne(@Req() request: RequestWithUser, @Param("id") id: string) {
     return this.notificationService.deleteOne(request.user.id, id);
   }
 
