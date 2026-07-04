@@ -1,11 +1,11 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { CreateNotificationDot } from "./dto/create-notification.dto";
+import { CreateNotificationDto } from "./dto/create-notification.dto";
 import { PrismaService } from "../prisma/prisma.service";
 
 @Injectable()
 export class NotificationService {
   constructor(private readonly prisma: PrismaService) {}
-  async create(userId: string, createNotificationDot: CreateNotificationDot) {
+  async create(userId: string, createNotificationDot: CreateNotificationDto) {
     return this.prisma.notification.create({
       data: {
         userId,

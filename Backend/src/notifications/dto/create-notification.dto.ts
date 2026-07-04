@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsString, MaxLength } from "class-validator";
 
-export class CreateNotificationDot {
+export class CreateNotificationDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(80)
