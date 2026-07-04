@@ -12,7 +12,7 @@ import { Request } from "express";
 import { BasicUser } from "../auth/auth.types";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { CreateNotificationDto } from "./dto/create-notification.dto";
-import { NotificationService } from "./notifications.service";
+import { NotificationService } from "./notification.service";
 
 type RequestWithUser = Request & {
   user: BasicUser;

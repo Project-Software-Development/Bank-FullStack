@@ -1,5 +1,5 @@
 import { Module } from "@nestjs/common";
-import { NotificationService } from "./notifications.service";
+import { NotificationService } from "./notification.service";
 import { NotificationController } from "./notifications.controller";
 import { PrismaModule } from "../prisma/prisma.module";
 
