@@ -82,18 +82,19 @@ http://localhost:3001
 ```
 
 ## Modelo de Usuario
+
 Tabela `User` usada pelo Prisma:
-| Campo           | Tipo      | Observacao                                      |
+| Campo | Tipo | Observacao |
 | --------------- | --------- | ----------------------------------------------- |
-| `id`            | `String`  | UUID gerado automaticamente.                    |
-| `nome`          | `String`  | Nome do usuario.                                |
-| `cpf`           | `String`  | Unico. Usado tambem no login.                   |
-| `email`         | `String`  | Unico. Usado tambem no login.                   |
-| `telefone`      | `String?` | Opcional.                                       |
-| `senha`         | `String`  | Salva criptografada com bcrypt.                 |
-| `tipo`          | `String`  | Novos cadastros recebem `CLIENTE`.              |
-| `statusConta`   | `String`  | Novos cadastros recebem `ATIVO`.                |
-| `createdAt`     | `DateTime`| Data de criacao.                                |
+| `id` | `String` | UUID gerado automaticamente. |
+| `nome` | `String` | Nome do usuario. |
+| `cpf` | `String` | Unico. Usado tambem no login. |
+| `email` | `String` | Unico. Usado tambem no login. |
+| `telefone` | `String?` | Opcional. |
+| `senha` | `String` | Salva criptografada com bcrypt. |
+| `tipo` | `String` | Novos cadastros recebem `CLIENTE`. |
+| `statusConta` | `String` | Novos cadastros recebem `ATIVO`. |
+| `createdAt` | `DateTime`| Data de criacao. |
 
 Importante: o campo `senha` nunca e retornado nas respostas da API.
 
@@ -146,33 +147,33 @@ Resposta de sucesso, status `201`:
 
 Erros esperados:
 
-| Status | Quando acontece                         |
-| ------ | --------------------------------------- |
-| `400`  | Campos invalidos ou faltando.           |
-| `409`  | CPF ou e-mail ja cadastrado.            |
-| `500`  | Erro inesperado no servidor ou banco.   |
+| Status | Quando acontece                       |
+| ------ | ------------------------------------- |
+| `400`  | Campos invalidos ou faltando.         |
+| `409`  | CPF ou e-mail ja cadastrado.          |
+| `500`  | Erro inesperado no servidor ou banco. |
 
 Exemplo para o frontend:
 
 ```ts
-const response = await fetch('http://localhost:3000/auth/register', {
-  method: 'POST',
+const response = await fetch("http://localhost:3000/auth/register", {
+  method: "POST",
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
   body: JSON.stringify({
-    nome: 'Maria Silva',
-    cpf: '12345678900',
-    email: 'maria@email.com',
-    telefone: '98999999999',
-    senha: 'senha123',
+    nome: "Maria Silva",
+    cpf: "12345678900",
+    email: "maria@email.com",
+    telefone: "98999999999",
+    senha: "senha123",
   }),
 });
 
 const data = await response.json();
 
 if (!response.ok) {
-  throw new Error(data.message ?? 'Erro ao cadastrar usuario.');
+  throw new Error(data.message ?? "Erro ao cadastrar usuario.");
 }
 ```
 
@@ -209,33 +210,33 @@ Resposta de sucesso, status `200`:
 
 Erros esperados:
 
-| Status | Quando acontece              |
-| ------ | ---------------------------- |
-| `400`  | Body invalido.               |
-| `401`  | E-mail/CPF ou senha invalidos. |
+| Status | Quando acontece                   |
+| ------ | --------------------------------- |
+| `400`  | Body invalido.                    |
+| `401`  | E-mail/CPF ou senha invalidos.    |
 | `403`  | Usuario existe, mas esta inativo. |
 
 Exemplo para o frontend:
 
 ```ts
-const response = await fetch('http://localhost:3000/auth/login', {
-  method: 'POST',
+const response = await fetch("http://localhost:3000/auth/login", {
+  method: "POST",
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
   body: JSON.stringify({
-    emailOuCpf: 'cliente@email.com',
-    senha: 'senha123',
+    emailOuCpf: "cliente@email.com",
+    senha: "senha123",
   }),
 });
 
 const data = await response.json();
 
 if (!response.ok) {
-  throw new Error(data.message ?? 'Erro ao fazer login.');
+  throw new Error(data.message ?? "Erro ao fazer login.");
 }
 
-localStorage.setItem('accessToken', data.accessToken);
+localStorage.setItem("accessToken", data.accessToken);
 ```
 
 ### GET `/auth/me`
@@ -265,16 +266,16 @@ Resposta de sucesso, status `200`:
 
 Erro esperado:
 
-| Status | Quando acontece           |
-| ------ | ------------------------- |
+| Status | Quando acontece            |
+| ------ | -------------------------- |
 | `401`  | Token ausente ou invalido. |
 
 Exemplo para o frontend:
 
 ```ts
-const token = localStorage.getItem('accessToken');
+const token = localStorage.getItem("accessToken");
 
-const response = await fetch('http://localhost:3000/auth/me', {
+const response = await fetch("http://localhost:3000/auth/me", {
   headers: {
     Authorization: `Bearer ${token}`,
   },
