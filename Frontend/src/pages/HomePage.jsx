@@ -3,9 +3,13 @@ import { useAuth } from "../context/AuthContext";
 import { getDashboardMe } from "../services/dashboardService";
 import { getHistorico, transferir } from "../services/transacoesService";
 import UsuariosManagement from "../components/UsuariosManagement";
-import { getNotifications } from "../services/notificationsService";
 import bankLogo from "../assets/pds-bank-logo.png";
 import "./HomePage.css";
+import {
+  deleteAllNotifications,
+  deleteNotification,
+  getNotifications,
+} from "../services/notificationsService";
 
 function HomeIcon() {
   return (
@@ -108,6 +112,9 @@ export default function HomePage() {
   const [notificationsLoading, setNotificationsLoading] = useState(true);
   const [notificationsError, setNotificationsError] = useState("");
   const [notifications, setNotifications] = useState([]);
+  const [deletingNotificationId, setDeletingNotificationId] = useState(null);
+  const [deletingAllNotifications, setDeletingAllNotifications] =
+    useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -196,6 +203,61 @@ export default function HomePage() {
 
   function formatDate(value) {
     return new Date(value).toLocaleString("pt-BR");
+  }
+
+  async function handleDeleteNotification(notificationId) {
+    if (!token || deletingNotificationId || deletingAllNotifications) {
+      return;
+    }
+
+    setDeletingNotificationId(notificationId);
+    setNotificationsError("");
+
+    try {
+      await deleteNotification(token, notificationId);
+
+      setNotifications((current) =>
+        current.filter((notification) => notification.id !== notificationId),
+      );
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Erro ao excluir notificacao.";
+
+      if (message === "Sessao expirada. Faca login novamente.") {
+        signOut();
+        return;
+      }
+
+      setNotificationsError(message);
+    } finally {
+      setDeletingNotificationId(null);
+    }
+  }
+
+  async function handleDeleteAllNotifications() {
+    if (!token || notifications.length === 0 || deletingAllNotifications) {
+      return;
+    }
+
+    setDeletingAllNotifications(true);
+    setNotificationsError("");
+
+    try {
+      await deleteAllNotifications(token);
+      setNotifications([]);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Erro ao excluir notificacoes.";
+
+      if (message === "Sessao expirada. Faca login novamente.") {
+        signOut();
+        return;
+      }
+
+      setNotificationsError(message);
+    } finally {
+      setDeletingAllNotifications(false);
+    }
   }
 
   async function handleTransferenciaSubmit(event) {
@@ -406,7 +468,25 @@ export default function HomePage() {
               </article>
 
               <article className="fake-card fake-card--wide">
-                <p className="fake-card__label">Notificações da conta</p>
+                <div className="notification-header">
+                  <p className="fake-card__label">Notificações da conta</p>
+
+                  {notifications.length > 0 && (
+                    <button
+                      type="button"
+                      className="notification-clear-all"
+                      onClick={handleDeleteAllNotifications}
+                      disabled={
+                        notificationsLoading || deletingAllNotifications
+                      }
+                    >
+                      {deletingAllNotifications
+                        ? "Apagando..."
+                        : "Apagar todas"}
+                    </button>
+                  )}
+                </div>
+
                 {notificationsLoading ? (
                   <p className="fake-card__hint">Carregando notificações...</p>
                 ) : notificationsError ? (
@@ -417,13 +497,32 @@ export default function HomePage() {
                   </p>
                 ) : (
                   <ul className="notification-list">
-                    {notifications.slice(0, 6).map((notification) => (
-                      <li key={notification.id} className="notification-item">
-                        <strong>{notification.title}</strong>
-                        <span>{notification.body}</span>
-                        <small>{formatDate(notification.createdAt)}</small>
-                      </li>
-                    ))}
+                    {notifications.slice(0, 6).map((notification) => {
+                      const isDeleting =
+                        deletingNotificationId === notification.id;
+
+                      return (
+                        <li key={notification.id} className="notification-item">
+                          <div className="notification-item__content">
+                            <strong>{notification.title}</strong>
+                            <span>{notification.body}</span>
+                            <small>{formatDate(notification.createdAt)}</small>
+                          </div>
+
+                          <button
+                            type="button"
+                            className="notification-delete"
+                            onClick={() =>
+                              handleDeleteNotification(notification.id)
+                            }
+                            disabled={isDeleting || deletingAllNotifications}
+                            aria-label={`Apagar notificacao ${notification.title}`}
+                          >
+                            {isDeleting ? "Apagando..." : "Apagar"}
+                          </button>
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
               </article>

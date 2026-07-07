@@ -10,6 +10,33 @@ async function parseJsonSafely(response) {
   }
 }
 
+async function requestNotificationDeletion(url, token, fallbackMessage) {
+  let response;
+
+  try {
+    response = await fetch(url, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  } catch {
+    throw new Error(fallbackMessage);
+  }
+
+  if (!response.ok) {
+    const error = await parseJsonSafely(response);
+
+    if (response.status === 401) {
+      throw new Error("Sessao expirada. Faca login novamente.");
+    }
+
+    throw new Error(error.message || fallbackMessage);
+  }
+
+  return parseJsonSafely(response);
+}
+
 export async function getNotifications(token) {
   let response;
   try {
@@ -33,4 +60,20 @@ export async function getNotifications(token) {
   }
 
   return response.json();
+}
+
+export async function deleteNotification(token, notificationId) {
+  return requestNotificationDeletion(
+    `${API_BASE_URL}/notifications/${notificationId}`,
+    token,
+    "Nao foi possivel excluir a notificacao.",
+  );
+}
+
+export async function deleteAllNotifications(token) {
+  return requestNotificationDeletion(
+    `${API_BASE_URL}/notifications`,
+    token,
+    "Nao foi possivel excluir as notificacoes.",
+  );
 }
