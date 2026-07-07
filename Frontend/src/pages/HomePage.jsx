@@ -455,7 +455,9 @@ export default function HomePage() {
                         <EyeIcon open={showPersonalId} />
                       </button>
                     </dt>
-                    <dd>{showPersonalId ? user?.id || "-" : hiddenPersonalId}</dd>
+                    <dd>
+                      {showPersonalId ? user?.id || "-" : hiddenPersonalId}
+                    </dd>
                   </div>
                   <div>
                     <dt>Conta criada em</dt>
@@ -463,15 +465,6 @@ export default function HomePage() {
                   </div>
                 </dl>
               </article>
-            </section>
-          </>
-        ) : (
-          <>
-            <header className="home-content__header">
-              <h2>Painel do cliente</h2>
-              <p>Dados reais da conta vinculada ao usuario autenticado.</p>
-            </header>
-
               <article className="fake-card fake-card--wide">
                 <div className="notification-header">
                   <p className="fake-card__label">Notificações da conta</p>
@@ -531,6 +524,14 @@ export default function HomePage() {
                   </ul>
                 )}
               </article>
+            </section>
+          </>
+        ) : (
+          <>
+            <header className="home-content__header">
+              <h2>Painel do cliente</h2>
+              <p>Dados reais da conta vinculada ao usuario autenticado.</p>
+            </header>
 
             {dashboardError && (
               <div className="home-feedback home-feedback--error" role="alert">
@@ -549,9 +550,7 @@ export default function HomePage() {
                 <p className="fake-card__label">Saldo em conta</p>
                 <h3>{formattedBalance}</h3>
                 <span className="fake-card__hint">
-                  {account
-                    ? ""
-                    : "Sem conta vinculada no momento"}
+                  {account ? "" : "Sem conta vinculada no momento"}
                 </span>
               </article>
 
