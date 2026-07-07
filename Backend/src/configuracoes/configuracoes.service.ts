@@ -2,12 +2,13 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
-} from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { PrismaService } from '../prisma/prisma.service';
-import { AlterarStatusUsuarioDto } from './dto/alterar-status-usuario.dto';
-import { ConfiguracoesUsuarioDto } from './dto/configuracoes-usuario-response.dto';
-import { ListarUsuariosQueryDto } from './dto/listar-usuarios-query.dto';
+} from "@nestjs/common";
+import { Prisma } from "@prisma/client";
+import { PrismaService } from "../prisma/prisma.service";
+import { AlterarStatusUsuarioDto } from "./dto/alterar-status-usuario.dto";
+import { ConfiguracoesUsuarioDto } from "./dto/configuracoes-usuario-response.dto";
+import { ListarUsuariosQueryDto } from "./dto/listar-usuarios-query.dto";
+import { NotificationService } from "../notifications/notification.service";
 
 const usuarioSelect = {
   id: true,
@@ -35,7 +36,10 @@ type UsuarioComConta = Prisma.UserGetPayload<{
 
 @Injectable()
 export class ConfiguracoesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationService: NotificationService,
+  ) {}
 
   async listarUsuarios(query: ListarUsuariosQueryDto) {
     const page = query.page ?? 1;
@@ -46,7 +50,7 @@ export class ConfiguracoesService {
     const [usuarios, total] = await this.prisma.$transaction([
       this.prisma.user.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         skip,
         take: limit,
         select: usuarioSelect,
@@ -71,7 +75,7 @@ export class ConfiguracoesService {
     });
 
     if (!usuario) {
-      throw new NotFoundException('Usuario nao encontrado.');
+      throw new NotFoundException("Usuario nao encontrado.");
     }
 
     return this.mapUsuario(usuario);
@@ -85,6 +89,7 @@ export class ConfiguracoesService {
       where: { id },
       select: {
         id: true,
+        statusConta: true,
         conta: {
           select: {
             id: true,
@@ -94,7 +99,7 @@ export class ConfiguracoesService {
     });
 
     if (!usuario) {
-      throw new NotFoundException('Usuario nao encontrado.');
+      throw new NotFoundException("Usuario nao encontrado.");
     }
 
     const contaStatus = this.getContaStatusFromUsuarioStatus(
@@ -117,6 +122,14 @@ export class ConfiguracoesService {
           },
         });
       }
+
+      if (usuario.statusConta !== alterarStatusUsuarioDto.statusConta) {
+        await this.notificationService.notifyAccountStatusChanged(
+          id,
+          alterarStatusUsuarioDto.statusConta,
+          tx,
+        );
+      }
     });
 
     return this.buscarUsuarioPorId(id);
@@ -124,7 +137,9 @@ export class ConfiguracoesService {
 
   async excluirUsuario(adminId: string, id: string) {
     if (adminId === id) {
-      throw new BadRequestException('Nao e permitido excluir o proprio usuario.');
+      throw new BadRequestException(
+        "Nao e permitido excluir o proprio usuario.",
+      );
     }
 
     const usuario = await this.prisma.user.findUnique({
@@ -142,7 +157,7 @@ export class ConfiguracoesService {
     });
 
     if (!usuario) {
-      throw new NotFoundException('Usuario nao encontrado.');
+      throw new NotFoundException("Usuario nao encontrado.");
     }
 
     await this.prisma.$transaction(async (tx) => {
@@ -188,8 +203,8 @@ export class ConfiguracoesService {
 
     if (query.busca) {
       where.OR = [
-        { nome: { contains: query.busca, mode: 'insensitive' } },
-        { email: { contains: query.busca, mode: 'insensitive' } },
+        { nome: { contains: query.busca, mode: "insensitive" } },
+        { email: { contains: query.busca, mode: "insensitive" } },
         { cpf: { contains: query.busca } },
       ];
     }
@@ -198,12 +213,12 @@ export class ConfiguracoesService {
   }
 
   private getContaStatusFromUsuarioStatus(statusConta: string): string | null {
-    if (statusConta === 'ATIVO') {
-      return 'ATIVA';
+    if (statusConta === "ATIVO") {
+      return "ATIVA";
     }
 
-    if (statusConta === 'INATIVO') {
-      return 'INATIVA';
+    if (statusConta === "INATIVO") {
+      return "INATIVA";
     }
 
     return null;
