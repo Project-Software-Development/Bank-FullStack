@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import WelcomePage from './pages/WelcomePage';
 import LoginPage from './pages/LoginPage';
 import HomePage from './pages/HomePage';
 import RegisterPage from './pages/RegisterPage';
 
 function AppContent() {
   const { user, loading } = useAuth();
+  const [showWelcome, setShowWelcome] = useState(true);
   const [authScreen, setAuthScreen] = useState('login');
   const [prefilledLogin, setPrefilledLogin] = useState('');
   const [loginNotice, setLoginNotice] = useState('');
@@ -29,6 +31,10 @@ function AppContent() {
 
   if (user) {
     return <HomePage />;
+  }
+
+  if (showWelcome) {
+    return <WelcomePage onContinue={() => setShowWelcome(false)} />;
   }
 
   const loginViewKey = `${prefilledLogin}|${loginNotice}`;
