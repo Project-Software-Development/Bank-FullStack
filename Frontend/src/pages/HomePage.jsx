@@ -9,6 +9,7 @@ import {
   deleteAllNotifications,
   deleteNotification,
   getNotifications,
+  updateNotificationStatus,
 } from "../services/notificationsService";
 
 function HomeIcon() {
@@ -55,6 +56,22 @@ function UserIcon() {
     >
       <path d="M20 21a8 8 0 0 0-16 0" />
       <circle cx="12" cy="8" r="4" />
+    </svg>
+  );
+}
+
+function BellIcon() {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
+      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
+      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
     </svg>
   );
 }
@@ -131,6 +148,8 @@ export default function HomePage() {
   const [deletingNotificationId, setDeletingNotificationId] = useState(null);
   const [deletingAllNotifications, setDeletingAllNotifications] =
     useState(false);
+  const [updatingNotificationId, setUpdatingNotificationId] = useState(null);
+  const [notificationFilter, setNotificationFilter] = useState("todas");
 
   useEffect(() => {
     let isMounted = true;
@@ -208,6 +227,25 @@ export default function HomePage() {
       : "Saldo indisponivel";
   const hiddenPersonalId = user?.id ? "••••••••••••••••••••" : "-";
 
+  const unreadNotifications = notifications.filter(
+    (notification) => !notification.lida,
+  );
+  const readNotifications = notifications.filter(
+    (notification) => notification.lida,
+  );
+  const visibleNotifications = notifications.filter((notification) => {
+    if (notificationFilter === "nao-lidas") {
+      return !notification.lida;
+    }
+    if (notificationFilter === "lidas") {
+      return notification.lida;
+    }
+    return true;
+  });
+  const notificationPopoverItems = unreadNotifications.length
+    ? unreadNotifications.slice(0, 4)
+    : notifications.slice(0, 4);
+
   function formatCurrency(value) {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
@@ -271,6 +309,44 @@ export default function HomePage() {
       setNotificationsError(message);
     } finally {
       setDeletingAllNotifications(false);
+    }
+  }
+
+  async function handleUpdateNotificationStatus(notificationId, lida) {
+    if (!token || updatingNotificationId || deletingAllNotifications) {
+      return;
+    }
+
+    setUpdatingNotificationId(notificationId);
+    setNotificationsError("");
+
+    try {
+      const response = await updateNotificationStatus(
+        token,
+        notificationId,
+        lida,
+      );
+      const updatedNotification = response.data;
+
+      setNotifications((current) =>
+        current.map((notification) =>
+          notification.id === updatedNotification.id
+            ? updatedNotification
+            : notification,
+        ),
+      );
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Erro ao atualizar notificacao.";
+
+      if (message === "Sessao expirada. Faca login novamente.") {
+        signOut();
+        return;
+      }
+
+      setNotificationsError(message);
+    } finally {
+      setUpdatingNotificationId(null);
     }
   }
 
@@ -467,7 +543,13 @@ export default function HomePage() {
               </article>
               <article className="fake-card fake-card--wide">
                 <div className="notification-header">
-                  <p className="fake-card__label">Notificações da conta</p>
+                  <div>
+                    <p className="fake-card__label">Notificações da conta</p>
+                    <span className="notification-subtitle">
+                      {unreadNotifications.length} nao lida(s) de{" "}
+                      {notifications.length}
+                    </span>
+                  </div>
 
                   {notifications.length > 0 && (
                     <button
@@ -485,6 +567,38 @@ export default function HomePage() {
                   )}
                 </div>
 
+                {notifications.length > 0 && (
+                  <div
+                    className="notification-filters"
+                    role="group"
+                    aria-label="Filtro de notificacoes"
+                  >
+                    <button
+                      type="button"
+                      className={notificationFilter === "todas" ? "is-active" : ""}
+                      onClick={() => setNotificationFilter("todas")}
+                    >
+                      Todas ({notifications.length})
+                    </button>
+                    <button
+                      type="button"
+                      className={
+                        notificationFilter === "nao-lidas" ? "is-active" : ""
+                      }
+                      onClick={() => setNotificationFilter("nao-lidas")}
+                    >
+                      Nao lidas ({unreadNotifications.length})
+                    </button>
+                    <button
+                      type="button"
+                      className={notificationFilter === "lidas" ? "is-active" : ""}
+                      onClick={() => setNotificationFilter("lidas")}
+                    >
+                      Lidas ({readNotifications.length})
+                    </button>
+                  </div>
+                )}
+
                 {notificationsLoading ? (
                   <p className="fake-card__hint">Carregando notificações...</p>
                 ) : notificationsError ? (
@@ -493,31 +607,74 @@ export default function HomePage() {
                   <p className="fake-card__hint">
                     Nenhuma notificação registrada até o momento.
                   </p>
+                ) : visibleNotifications.length === 0 ? (
+                  <p className="fake-card__hint">
+                    Nenhuma notificacao encontrada para este filtro.
+                  </p>
                 ) : (
                   <ul className="notification-list">
-                    {notifications.slice(0, 6).map((notification) => {
+                    {visibleNotifications.map((notification) => {
                       const isDeleting =
                         deletingNotificationId === notification.id;
+                      const isUpdating =
+                        updatingNotificationId === notification.id;
 
                       return (
-                        <li key={notification.id} className="notification-item">
+                        <li
+                          key={notification.id}
+                          className={`notification-item ${
+                            notification.lida ? "is-read" : "is-unread"
+                          }`}
+                        >
                           <div className="notification-item__content">
-                            <strong>{notification.title}</strong>
+                            <div className="notification-title-row">
+                              <strong>{notification.title}</strong>
+                              <span className="notification-status">
+                                {notification.lida ? "Lida" : "Nao lida"}
+                              </span>
+                            </div>
                             <span>{notification.body}</span>
                             <small>{formatDate(notification.createdAt)}</small>
                           </div>
 
-                          <button
-                            type="button"
-                            className="notification-delete"
-                            onClick={() =>
-                              handleDeleteNotification(notification.id)
-                            }
-                            disabled={isDeleting || deletingAllNotifications}
-                            aria-label={`Apagar notificacao ${notification.title}`}
-                          >
-                            {isDeleting ? "Apagando..." : "Apagar"}
-                          </button>
+                          <div className="notification-actions">
+                            <button
+                              type="button"
+                              className="notification-toggle"
+                              onClick={() =>
+                                handleUpdateNotificationStatus(
+                                  notification.id,
+                                  !notification.lida,
+                                )
+                              }
+                              disabled={
+                                isUpdating ||
+                                isDeleting ||
+                                deletingAllNotifications
+                              }
+                            >
+                              {isUpdating
+                                ? "Atualizando..."
+                                : notification.lida
+                                  ? "Marcar nao lida"
+                                  : "Marcar lida"}
+                            </button>
+                            <button
+                              type="button"
+                              className="notification-delete"
+                              onClick={() =>
+                                handleDeleteNotification(notification.id)
+                              }
+                              disabled={
+                                isDeleting ||
+                                isUpdating ||
+                                deletingAllNotifications
+                              }
+                              aria-label={`Apagar notificacao ${notification.title}`}
+                            >
+                              {isDeleting ? "Apagando..." : "Apagar"}
+                            </button>
+                          </div>
                         </li>
                       );
                     })}
@@ -528,9 +685,73 @@ export default function HomePage() {
           </>
         ) : (
           <>
-            <header className="home-content__header">
-              <h2>Painel do cliente</h2>
-              <p>Dados reais da conta vinculada ao usuario autenticado.</p>
+            <header className="home-content__header home-content__header--with-actions">
+              <div>
+                <h2>Painel do cliente</h2>
+                <p>Dados reais da conta vinculada ao usuario autenticado.</p>
+              </div>
+              <div className="header-notification">
+                <button
+                  type="button"
+                  className="header-notification-button"
+                  aria-label={
+                    unreadNotifications.length > 0
+                      ? `Notificacoes: ${unreadNotifications.length} nao lida(s)`
+                      : "Notificacoes"
+                  }
+                  aria-haspopup="dialog"
+                  title="Ver notificacoes"
+                >
+                  <BellIcon />
+                  {unreadNotifications.length > 0 && (
+                    <span className="header-notification-count">
+                      {unreadNotifications.length}
+                    </span>
+                  )}
+                </button>
+
+                <div className="notification-popover" role="dialog">
+                  <div className="notification-popover__header">
+                    <strong>Notificacoes</strong>
+                    <span>{unreadNotifications.length} nao lida(s)</span>
+                  </div>
+
+                  {notificationsLoading ? (
+                    <p className="notification-popover__empty">
+                      Carregando notificacoes...
+                    </p>
+                  ) : notificationsError ? (
+                    <p className="notification-popover__empty">
+                      {notificationsError}
+                    </p>
+                  ) : notificationPopoverItems.length === 0 ? (
+                    <p className="notification-popover__empty">
+                      Nenhuma notificacao encontrada.
+                    </p>
+                  ) : (
+                    <ul className="notification-popover__list">
+                      {notificationPopoverItems.map((notification) => (
+                        <li key={notification.id}>
+                          <strong>{notification.title}</strong>
+                          <span>{notification.body}</span>
+                          <small>
+                            {notification.lida ? "Lida" : "Nao lida"} -{" "}
+                            {formatDate(notification.createdAt)}
+                          </small>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  <button
+                    type="button"
+                    className="notification-popover__action"
+                    onClick={() => setActiveView("perfil")}
+                  >
+                    Ler todas
+                  </button>
+                </div>
+              </div>
             </header>
 
             {dashboardError && (
