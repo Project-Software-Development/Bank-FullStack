@@ -883,21 +883,6 @@ export default function HomePage() {
                   </ul>
                 )}
               </article>
-
-              <article className="fake-card">
-                <p className="fake-card__label">Próximos pagamentos</p>
-                <ul>
-                  <li>Aguardando endpoint de pagamentos.</li>
-                </ul>
-              </article>
-
-              <article className="fake-card">
-                <p className="fake-card__label">Objetivo mensal</p>
-                <h3>Em breve</h3>
-                <span className="fake-card__hint">
-                  Aguardando endpoint de metas
-                </span>
-              </article>
             </section>
           </>
         )}
