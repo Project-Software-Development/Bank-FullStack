@@ -2,14 +2,18 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
-} from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { PrismaService } from '../prisma/prisma.service';
-import { TransferenciaDto } from './dto/transferencia.dto';
+} from "@nestjs/common";
+import { Prisma } from "@prisma/client";
+import { PrismaService } from "../prisma/prisma.service";
+import { TransferenciaDto } from "./dto/transferencia.dto";
+import { NotificationService } from "../notifications/notification.service";
 
 @Injectable()
 export class TransacoesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationService: NotificationService,
+  ) {}
 
   async historico(userId: string) {
     const conta = await this.prisma.conta.findUnique({
@@ -21,7 +25,7 @@ export class TransacoesService {
     });
 
     if (!conta) {
-      throw new NotFoundException('Conta do usuario nao encontrada.');
+      throw new NotFoundException("Conta do usuario nao encontrada.");
     }
 
     const transacoes = await this.prisma.transacao.findMany({
@@ -29,7 +33,7 @@ export class TransacoesService {
         OR: [{ contaOrigemId: conta.id }, { contaDestinoId: conta.id }],
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
       take: 20,
       select: {
@@ -64,12 +68,12 @@ export class TransacoesService {
         return {
           id: transacao.id,
           tipo: transacao.tipo,
-          direcao: isSaida ? 'SAIDA' : 'ENTRADA',
+          direcao: isSaida ? "SAIDA" : "ENTRADA",
           valor: transacao.valor.toNumber(),
           contaContraparte,
           descricao:
             transacao.descricao ??
-            `${isSaida ? 'Transferencia para' : 'Transferencia recebida de'} ${contaContraparte}`,
+            `${isSaida ? "Transferencia para" : "Transferencia recebida de"} ${contaContraparte}`,
           data: transacao.createdAt,
         };
       }),
@@ -80,7 +84,9 @@ export class TransacoesService {
     const valor = new Prisma.Decimal(transferenciaDto.valor);
 
     if (valor.lte(0)) {
-      throw new BadRequestException('Valor da transferencia deve ser maior que zero.');
+      throw new BadRequestException(
+        "Valor da transferencia deve ser maior que zero.",
+      );
     }
 
     const result = await this.prisma.$transaction(async (tx) => {
@@ -91,15 +97,16 @@ export class TransacoesService {
           numero: true,
           saldo: true,
           status: true,
+          userId: true,
         },
       });
 
       if (!contaOrigem) {
-        throw new NotFoundException('Conta de origem nao encontrada.');
+        throw new NotFoundException("Conta de origem nao encontrada.");
       }
 
-      if (contaOrigem.status.toUpperCase() !== 'ATIVA') {
-        throw new BadRequestException('Conta de origem inativa.');
+      if (contaOrigem.status.toUpperCase() !== "ATIVA") {
+        throw new BadRequestException("Conta de origem inativa.");
       }
 
       const contaDestino = await tx.conta.findUnique({
@@ -108,19 +115,22 @@ export class TransacoesService {
           id: true,
           numero: true,
           status: true,
+          userId: true,
         },
       });
 
       if (!contaDestino) {
-        throw new NotFoundException('Conta destino nao encontrada.');
+        throw new NotFoundException("Conta destino nao encontrada.");
       }
 
-      if (contaDestino.status.toUpperCase() !== 'ATIVA') {
-        throw new BadRequestException('Conta destino inativa.');
+      if (contaDestino.status.toUpperCase() !== "ATIVA") {
+        throw new BadRequestException("Conta destino inativa.");
       }
 
       if (contaOrigem.id === contaDestino.id) {
-        throw new BadRequestException('Conta destino deve ser diferente da conta de origem.');
+        throw new BadRequestException(
+          "Conta destino deve ser diferente da conta de origem.",
+        );
       }
 
       const debitoResult = await tx.conta.updateMany({
@@ -138,7 +148,7 @@ export class TransacoesService {
       });
 
       if (debitoResult.count === 0) {
-        throw new BadRequestException('Saldo insuficiente para transferencia.');
+        throw new BadRequestException("Saldo insuficiente para transferencia.");
       }
 
       await tx.conta.update({
@@ -152,13 +162,24 @@ export class TransacoesService {
 
       const transacao = await tx.transacao.create({
         data: {
-          tipo: 'TRANSFERENCIA',
+          tipo: "TRANSFERENCIA",
           valor,
           contaOrigemId: contaOrigem.id,
           contaDestinoId: contaDestino.id,
           descricao: `Transferencia para conta ${contaDestino.numero}`,
         },
       });
+
+      await this.notificationService.notifyTransferCompleted(
+        {
+          senderUserId: contaOrigem.userId,
+          receiverUserId: contaDestino.userId,
+          senderAccountNumber: contaOrigem.numero,
+          receiverAccountNumber: contaDestino.numero,
+          amount: valor,
+        },
+        tx,
+      );
 
       const contaOrigemAtualizada = await tx.conta.findUnique({
         where: { id: contaOrigem.id },
@@ -178,7 +199,7 @@ export class TransacoesService {
     });
 
     return {
-      mensagem: 'Transferencia realizada com sucesso.',
+      mensagem: "Transferencia realizada com sucesso.",
       ...result,
     };
   }
