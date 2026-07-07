@@ -8,26 +8,13 @@ datasource db {
 }
 
 model User {
-  id            String         @id @default(uuid())
-  nome          String
-  cpf           String         @unique
-  email         String         @unique
-  telefone      String?
-  senha         String
-  tipo          String
-  statusConta   String         @default("ATIVO")
-  createdAt     DateTime       @default(now())
-  notifications Notification[]
-}
-
-model Notification {
-  id        String   @id @default(uuid())
-  userId    String
-  title     String
-  body      String
-  createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
+  id          String   @id @default(uuid())
+  nome        String
+  cpf         String   @unique
+  email       String   @unique
+  telefone    String?
+  senha       String
+  tipo        String
+  statusConta String   @default("ATIVO")
+  createdAt   DateTime @default(now())
 }
