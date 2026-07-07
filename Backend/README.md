@@ -1,14 +1,8 @@
-# API Banco Digital
+# Backend - API Banco Digital
 
-Backend em NestJS com TypeScript, Prisma, PostgreSQL, JWT, bcrypt e Swagger.
+API desenvolvida em NestJS para autenticar usuários, gerenciar contas, executar transferências internas, registrar transações, emitir notificações e oferecer rotas administrativas de usuários.
 
-Esta versao entrega os fluxos necessarios para o frontend implementar:
-
-- Cadastro de usuarios clientes.
-- Login por e-mail ou CPF.
-- Consulta do usuario autenticado pelo token JWT.
-
-## Tecnologias
+## Stack
 
 - Node.js
 - NestJS
@@ -19,28 +13,45 @@ Esta versao entrega os fluxos necessarios para o frontend implementar:
 - Passport
 - bcrypt
 - Swagger/OpenAPI
+- class-validator
 
-## Como Rodar o Projeto
+## Requisitos
 
-Instale as dependencias:
+- Node.js compatível com o projeto
+- npm
+- PostgreSQL em execução
+
+## Configuração
+
+Instale as dependências:
 
 ```bash
 npm install
 ```
 
-Crie o arquivo `.env` com base no exemplo:
+Crie o `.env` a partir do exemplo:
 
 ```bash
-cp .env.example .env
+copy .env.example .env
 ```
 
-Configure as variaveis de ambiente:
+Variáveis esperadas:
 
 ```env
-DATABASE_URL="postgresql://user:password@localhost:5432/api_banco_digital?schema=public"
-JWT_SECRET="troque-este-segredo-em-producao"
+DATABASE_URL="postgres://postgres:postgres@localhost:5432/BancoDigital"
+JWT_SECRET="change-this-secret"
 FRONTEND_ORIGIN="http://localhost:5173"
+PORT=3000
 ```
+
+| Variável | Descrição |
+| --- | --- |
+| `DATABASE_URL` | String de conexão com o PostgreSQL. |
+| `JWT_SECRET` | Segredo usado para assinar os tokens JWT. |
+| `FRONTEND_ORIGIN` | Origem liberada no CORS para o frontend. |
+| `PORT` | Porta da API. O padrão usado pelo projeto é `3000`. |
+
+## Banco de dados
 
 Gere o Prisma Client:
 
@@ -48,262 +59,276 @@ Gere o Prisma Client:
 npm run prisma:generate
 ```
 
-Sincronize o schema Prisma com o banco local:
+Aplique as migrations no banco local:
 
 ```bash
-npx prisma db push
+npm run prisma:updatedb
 ```
 
-Inicie a aplicacao em desenvolvimento:
+As migrations ficam em:
+
+```text
+prisma/migrations
+```
+
+## Como rodar
+
+Desenvolvimento com watch:
 
 ```bash
 npm run start:dev
 ```
 
-A API fica disponivel em:
+Build:
+
+```bash
+npm run build
+```
+
+Produção local após build:
+
+```bash
+npm run start:prod
+```
+
+API:
 
 ```text
 http://localhost:3000
 ```
 
-A documentacao Swagger fica em:
+Swagger:
 
 ```text
 http://localhost:3000/api/docs
 ```
 
-## CORS
+## Scripts
 
-O backend esta com CORS habilitado para permitir chamadas do frontend em outra porta, por exemplo:
+| Script | Descrição |
+| --- | --- |
+| `npm run start` | Inicia a aplicação NestJS. |
+| `npm run start:dev` | Inicia a aplicação em modo desenvolvimento com watch. |
+| `npm run build` | Compila o projeto. |
+| `npm run start:prod` | Executa `dist/main`. |
+| `npm run prisma:generate` | Gera o Prisma Client. |
+| `npm run prisma:updatedb` | Executa `prisma migrate dev`. |
+| `npm run format` | Formata arquivos TypeScript e Prisma com Prettier. |
 
-```text
-http://localhost:5173
-http://localhost:3001
-```
+## Modelos Prisma
 
-## Modelo de Usuario
+| Modelo | Responsabilidade |
+| --- | --- |
+| `User` | Dados de autenticação, perfil, CPF, e-mail, telefone e status da conta. |
+| `Conta` | Número único, saldo, status e vínculo 1:1 com usuário. |
+| `Transacao` | Registro de transferências entre conta de origem e conta de destino. |
+| `Notification` | Notificações do usuário, com status `lida` ou `não lida`. |
 
-Tabela `User` usada pelo Prisma:
-| Campo | Tipo | Observacao |
-| --------------- | --------- | ----------------------------------------------- |
-| `id` | `String` | UUID gerado automaticamente. |
-| `nome` | `String` | Nome do usuario. |
-| `cpf` | `String` | Unico. Usado tambem no login. |
-| `email` | `String` | Unico. Usado tambem no login. |
-| `telefone` | `String?` | Opcional. |
-| `senha` | `String` | Salva criptografada com bcrypt. |
-| `tipo` | `String` | Novos cadastros recebem `CLIENTE`. |
-| `statusConta` | `String` | Novos cadastros recebem `ATIVO`. |
-| `createdAt` | `DateTime`| Data de criacao. |
+## Perfis e autenticação
 
-Importante: o campo `senha` nunca e retornado nas respostas da API.
+Os perfis usados pelo backend são:
 
-## Endpoints Para o Frontend
+- `CLIENTE`
+- `ADMINISTRADOR`
 
-### POST `/auth/register`
+O cadastro público cria usuários do tipo `CLIENTE` com `statusConta` igual a `ATIVO`. Durante o cadastro, o backend também cria uma `Conta` vinculada ao usuário.
 
-Cadastra um novo usuario cliente.
-
-Body:
-
-```json
-{
-  "nome": "Maria Silva",
-  "cpf": "12345678900",
-  "email": "maria@email.com",
-  "telefone": "98999999999",
-  "senha": "senha123"
-}
-```
-
-Regras:
-
-- `nome` e obrigatorio.
-- `cpf` e obrigatorio e deve ter 11 digitos.
-- `cpf` pode ser enviado com ou sem pontuacao.
-- `email` e obrigatorio e deve ser valido.
-- `email` e salvo em letras minusculas.
-- `telefone` e opcional.
-- `telefone` pode ser enviado com ou sem pontuacao.
-- `senha` e obrigatoria e deve ter pelo menos 6 caracteres.
-- CPF e e-mail nao podem estar cadastrados.
-- A senha e criptografada antes de salvar.
-- O usuario criado recebe `tipo: "CLIENTE"` e `statusConta: "ATIVO"`.
-
-Resposta de sucesso, status `201`:
-
-```json
-{
-  "id": "0f13db49-44a9-4cc8-b90f-5655489263aa",
-  "nome": "Maria Silva",
-  "cpf": "12345678900",
-  "email": "maria@email.com",
-  "telefone": "98999999999",
-  "tipo": "CLIENTE",
-  "statusConta": "ATIVO",
-  "createdAt": "2026-05-26T20:00:00.000Z"
-}
-```
-
-Erros esperados:
-
-| Status | Quando acontece                       |
-| ------ | ------------------------------------- |
-| `400`  | Campos invalidos ou faltando.         |
-| `409`  | CPF ou e-mail ja cadastrado.          |
-| `500`  | Erro inesperado no servidor ou banco. |
-
-Exemplo para o frontend:
-
-```ts
-const response = await fetch("http://localhost:3000/auth/register", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    nome: "Maria Silva",
-    cpf: "12345678900",
-    email: "maria@email.com",
-    telefone: "98999999999",
-    senha: "senha123",
-  }),
-});
-
-const data = await response.json();
-
-if (!response.ok) {
-  throw new Error(data.message ?? "Erro ao cadastrar usuario.");
-}
-```
-
-### POST `/auth/login`
-
-Autentica um usuario por e-mail ou CPF.
-
-Body:
-
-```json
-{
-  "emailOuCpf": "cliente@email.com",
-  "senha": "senha123"
-}
-```
-
-Resposta de sucesso, status `200`:
-
-```json
-{
-  "accessToken": "token.jwt.aqui",
-  "user": {
-    "id": "0f13db49-44a9-4cc8-b90f-5655489263aa",
-    "nome": "Maria Silva",
-    "cpf": "12345678900",
-    "email": "maria@email.com",
-    "telefone": "98999999999",
-    "tipo": "CLIENTE",
-    "statusConta": "ATIVO",
-    "createdAt": "2026-05-26T20:00:00.000Z"
-  }
-}
-```
-
-Erros esperados:
-
-| Status | Quando acontece                   |
-| ------ | --------------------------------- |
-| `400`  | Body invalido.                    |
-| `401`  | E-mail/CPF ou senha invalidos.    |
-| `403`  | Usuario existe, mas esta inativo. |
-
-Exemplo para o frontend:
-
-```ts
-const response = await fetch("http://localhost:3000/auth/login", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    emailOuCpf: "cliente@email.com",
-    senha: "senha123",
-  }),
-});
-
-const data = await response.json();
-
-if (!response.ok) {
-  throw new Error(data.message ?? "Erro ao fazer login.");
-}
-
-localStorage.setItem("accessToken", data.accessToken);
-```
-
-### GET `/auth/me`
-
-Retorna os dados do usuario autenticado.
-
-Header obrigatorio:
+Rotas protegidas exigem:
 
 ```http
 Authorization: Bearer seu_token_jwt
 ```
 
-Resposta de sucesso, status `200`:
+## Endpoints
+
+### Auth
+
+#### `POST /auth/register`
+
+Cadastra um cliente.
+
+Body:
 
 ```json
 {
-  "id": "0f13db49-44a9-4cc8-b90f-5655489263aa",
   "nome": "Maria Silva",
   "cpf": "12345678900",
   "email": "maria@email.com",
   "telefone": "98999999999",
-  "tipo": "CLIENTE",
-  "statusConta": "ATIVO",
-  "createdAt": "2026-05-26T20:00:00.000Z"
+  "senha": "senha123"
 }
 ```
 
-Erro esperado:
+Regras principais:
 
-| Status | Quando acontece            |
-| ------ | -------------------------- |
-| `401`  | Token ausente ou invalido. |
+- `cpf` deve ter 11 dígitos.
+- `email` deve ser válido e único.
+- `senha` deve ter pelo menos 6 caracteres.
+- `telefone` é opcional e deve ter 10 ou 11 dígitos quando informado.
 
-Exemplo para o frontend:
+#### `POST /auth/login`
 
-```ts
-const token = localStorage.getItem("accessToken");
+Autentica por e-mail ou CPF.
 
-const response = await fetch("http://localhost:3000/auth/me", {
-  headers: {
-    Authorization: `Bearer ${token}`,
-  },
-});
+Body:
 
-const user = await response.json();
+```json
+{
+  "emailOuCpf": "maria@email.com",
+  "senha": "senha123"
+}
 ```
 
-## Observacoes Para a Tela de Cadastro
+A resposta inclui `accessToken` e dados básicos do usuário.
 
-Fluxo recomendado:
+#### `GET /auth/me`
 
-1. Usuario preenche nome, CPF, e-mail, telefone opcional e senha.
-2. Frontend chama `POST /auth/register`.
-3. Se receber `201`, mostrar sucesso e redirecionar para login.
-4. Se receber `409`, mostrar que CPF ou e-mail ja esta cadastrado.
-5. Se receber `400`, mostrar erro de validacao.
-6. Depois do cadastro, o usuario pode fazer login em `POST /auth/login`.
+Retorna o usuário autenticado pelo token JWT.
 
-O cadastro nao faz login automaticamente. A tela de login continua sendo responsavel por obter e salvar o token JWT.
+### Dashboard
 
-## Scripts Disponiveis
+#### `GET /dashboard/me`
 
-| Script                    | Descricao                                             |
-| ------------------------- | ----------------------------------------------------- |
-| `npm run start`           | Inicia a aplicacao.                                   |
-| `npm run start:dev`       | Inicia a aplicacao em modo desenvolvimento com watch. |
-| `npm run build`           | Compila o projeto.                                    |
-| `npm run start:prod`      | Executa a versao compilada em `dist`.                 |
-| `npm run prisma:generate` | Gera o Prisma Client.                                 |
-| `npm run format`          | Formata arquivos TypeScript e Prisma com Prettier.    |
+Retorna dados do usuário e da conta vinculada.
+
+Exemplo de resposta:
+
+```json
+{
+  "usuario": {
+    "id": "uuid",
+    "nome": "Maria Silva",
+    "email": "maria@email.com",
+    "cpf": "12345678900",
+    "tipo": "CLIENTE",
+    "statusConta": "ATIVO"
+  },
+  "conta": {
+    "numero": "123456",
+    "saldo": 100,
+    "status": "ATIVA",
+    "dataCriacao": "2026-07-07T12:00:00.000Z"
+  }
+}
+```
+
+### Transações
+
+#### `GET /transacoes/historico`
+
+Retorna as últimas movimentações da conta autenticada.
+
+#### `POST /transacoes/transferir`
+
+Realiza transferência entre duas contas internas do sistema.
+
+Body:
+
+```json
+{
+  "contaDestinoNumero": "654321",
+  "valor": 50
+}
+```
+
+Regras principais:
+
+- o valor deve ser maior que zero;
+- a conta de origem deve existir e estar ativa;
+- a conta de destino deve existir e estar ativa;
+- a conta de destino deve ser diferente da origem;
+- a origem precisa ter saldo suficiente.
+
+Ao concluir a transferência, o backend registra a transação, atualiza os saldos e cria notificações para os usuários envolvidos.
+
+### Notificações
+
+#### `POST /notifications`
+
+Cria uma notificação para o usuário autenticado.
+
+Body:
+
+```json
+{
+  "title": "Transferência recebida",
+  "body": "Você recebeu R$ 50,00."
+}
+```
+
+#### `GET /notifications`
+
+Lista as notificações do usuário autenticado.
+
+#### `PATCH /notifications/:id/status`
+
+Marca uma notificação como lida ou não lida.
+
+Body:
+
+```json
+{
+  "lida": true
+}
+```
+
+#### `DELETE /notifications/:id`
+
+Apaga uma notificação do usuário autenticado.
+
+#### `DELETE /notifications`
+
+Apaga todas as notificações do usuário autenticado.
+
+### Configurações
+
+Rotas restritas ao perfil `ADMINISTRADOR`.
+
+#### `GET /configuracoes/usuarios`
+
+Lista usuários com filtros e paginação.
+
+Query params aceitos:
+
+- `busca`: busca por nome, e-mail ou CPF.
+- `tipo`: `CLIENTE` ou `ADMINISTRADOR`.
+- `statusConta`: `ATIVO` ou `INATIVO`.
+- `page`: página atual.
+- `limit`: quantidade por página.
+
+#### `GET /configuracoes/usuarios/:id`
+
+Retorna detalhes de um usuário.
+
+#### `PATCH /configuracoes/usuarios/:id/status`
+
+Altera o status administrativo do usuário.
+
+Body:
+
+```json
+{
+  "statusConta": "INATIVO"
+}
+```
+
+#### `DELETE /configuracoes/usuarios/:id`
+
+Exclui um usuário.
+
+## Validação rápida
+
+Com o `.env` configurado e o banco disponível:
+
+```bash
+npm run prisma:generate
+npm run prisma:updatedb
+npm run build
+```
+
+## Observações
+
+- O campo `senha` não deve ser retornado nas respostas da API.
+- O frontend usa `token` no `localStorage`; a API espera o token no header `Authorization`.
+- Para testar transferência, cadastre ao menos dois clientes.
+- Usuários administradores precisam existir no banco com `tipo` igual a `ADMINISTRADOR`.
