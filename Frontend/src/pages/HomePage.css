@@ -3,7 +3,7 @@
   display: grid;
   grid-template-columns: 320px 1fr;
   background: #f1f4f9;
-  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-family: "Segoe UI", system-ui, sans-serif;
 }
 
 .home-sidebar {
@@ -62,7 +62,9 @@
   font-weight: 600;
   cursor: pointer;
   text-align: left;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 
 .home-nav__item svg {
@@ -105,7 +107,9 @@
   font-size: 0.85rem;
   cursor: pointer;
   text-align: left;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 
 .home-nav__subitem:hover {
@@ -459,4 +463,33 @@
   .account-data-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.notification-list {
+  display: grid;
+  gap: 10px;
+}
+
+.notification-item {
+  border: 1px solid #d2dced;
+  border-radius: 10px;
+  padding: 12px;
+  display: grid;
+  gap: 4px;
+  background: #f8fafd;
+}
+
+.notification-item strong {
+  color: #1f2f57;
+  font-size: 0.88rem;
+}
+
+.notification-item span {
+  color: #5f6f91;
+  font-size: 0.82rem;
+}
+
+.notification-item small {
+  color: #7a89a9;
+  font-size: 0.72rem;
 }

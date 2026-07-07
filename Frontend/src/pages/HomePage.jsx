@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { getDashboardMe } from "../services/dashboardService";
 import { getHistorico, transferir } from "../services/transacoesService";
 import UsuariosManagement from "../components/UsuariosManagement";
+import { getNotifications } from "../services/notificationsService";
 import bankLogo from "../assets/pds-bank-logo.png";
 import "./HomePage.css";
 
@@ -104,6 +105,9 @@ export default function HomePage() {
   const [transferenciaLoading, setTransferenciaLoading] = useState(false);
   const [transferenciaError, setTransferenciaError] = useState("");
   const [transferenciaSuccess, setTransferenciaSuccess] = useState("");
+  const [notificationsLoading, setNotificationsLoading] = useState(true);
+  const [notificationsError, setNotificationsError] = useState("");
+  const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
     let isMounted = true;
@@ -113,24 +117,30 @@ export default function HomePage() {
         if (isMounted) {
           setDashboardLoading(false);
           setHistoricoLoading(false);
+          setNotificationsLoading(false);
         }
         return;
       }
 
+      setNotificationsLoading(true);
+      setNotificationsError("");
       setDashboardLoading(true);
       setHistoricoLoading(true);
       setDashboardError("");
       setHistoricoError("");
 
       try {
-        const [dashboardResponse, historicoResponse] = await Promise.all([
-          getDashboardMe(token),
-          getHistorico(token),
-        ]);
+        const [dashboardResponse, historicoResponse, notificationsResponse] =
+          await Promise.all([
+            getDashboardMe(token),
+            getHistorico(token),
+            getNotifications(token),
+          ]);
 
         if (isMounted) {
           setDashboardData(dashboardResponse);
           setHistorico(historicoResponse.itens ?? []);
+          setNotifications(notificationsResponse.data ?? []);
         }
       } catch (err) {
         const message =
@@ -142,11 +152,13 @@ export default function HomePage() {
         if (isMounted) {
           setDashboardError(message);
           setHistoricoError(message);
+          setNotificationsError(message);
         }
       } finally {
         if (isMounted) {
           setDashboardLoading(false);
           setHistoricoLoading(false);
+          setNotificationsLoading(false);
         }
       }
     }
@@ -214,13 +226,16 @@ export default function HomePage() {
         valor: valorNumerico,
       });
 
-      const [dashboardResponse, historicoResponse] = await Promise.all([
-        getDashboardMe(token),
-        getHistorico(token),
-      ]);
+      const [dashboardResponse, historicoResponse, notificationsResponse] =
+        await Promise.all([
+          getDashboardMe(token),
+          getHistorico(token),
+          getNotifications(token),
+        ]);
 
       setDashboardData(dashboardResponse);
       setHistorico(historicoResponse.itens ?? []);
+      setNotifications(notificationsResponse.data ?? []);
       setTransferenciaForm({ contaDestinoNumero: "", valor: "" });
       setTransferenciaSuccess(
         response.mensagem || "Transferencia realizada com sucesso.",
@@ -387,6 +402,29 @@ export default function HomePage() {
                     Conta ainda nao vinculada. Assim que a conta for criada, os
                     dados aparecerao aqui.
                   </p>
+                )}
+              </article>
+
+              <article className="fake-card fake-card--wide">
+                <p className="fake-card__label">Notificações da conta</p>
+                {notificationsLoading ? (
+                  <p className="fake-card__hint">Carregando notificações...</p>
+                ) : notificationsError ? (
+                  <p className="fake-card__hint">{notificationsError}</p>
+                ) : notifications.length === 0 ? (
+                  <p className="fake-card__hint">
+                    Nenhuma notificação registrada até o momento.
+                  </p>
+                ) : (
+                  <ul className="notification-list">
+                    {notifications.slice(0, 6).map((notification) => (
+                      <li key={notification.id} className="notification-item">
+                        <strong>{notification.title}</strong>
+                        <span>{notification.body}</span>
+                        <small>{formatDate(notification.createdAt)}</small>
+                      </li>
+                    ))}
+                  </ul>
                 )}
               </article>
 
