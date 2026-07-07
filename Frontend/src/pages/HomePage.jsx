@@ -38,6 +38,22 @@ function GearIcon() {
   );
 }
 
+function UserIcon() {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
+      <path d="M20 21a8 8 0 0 0-16 0" />
+      <circle cx="12" cy="8" r="4" />
+    </svg>
+  );
+}
+
 function ChevronIcon({ open }) {
   return (
     <svg
@@ -90,7 +106,7 @@ export default function HomePage() {
   const isAdmin = user?.tipo === "ADMINISTRADOR";
   const [activeView, setActiveView] = useState("home");
   const [configOpen, setConfigOpen] = useState(false);
-  const [showAccountId, setShowAccountId] = useState(false);
+  const [showPersonalId, setShowPersonalId] = useState(false);
   const [dashboardLoading, setDashboardLoading] = useState(true);
   const [dashboardError, setDashboardError] = useState("");
   const [dashboardData, setDashboardData] = useState(null);
@@ -160,8 +176,6 @@ export default function HomePage() {
 
   const firstName = user?.nome?.split(" ")[0] || "Cliente";
   const account = dashboardData?.conta ?? null;
-  const accountNumber = account?.numero ?? "-";
-  const accountStatus = account?.status ?? "Conta nao vinculada";
   const createdAt = account?.dataCriacao
     ? new Date(account.dataCriacao).toLocaleDateString("pt-BR")
     : "-";
@@ -173,7 +187,7 @@ export default function HomePage() {
           currency: "BRL",
         }).format(accountBalance)
       : "Saldo indisponivel";
-  const hiddenAccountId = user?.id ? "••••••••••••••••••••" : "-";
+  const hiddenPersonalId = user?.id ? "••••••••••••••••••••" : "-";
 
   function formatCurrency(value) {
     return new Intl.NumberFormat("pt-BR", {
@@ -245,17 +259,33 @@ export default function HomePage() {
           <img src={bankLogo} alt="PDS Bank" className="home-sidebar__logo" />
         </div>
 
+        <section className="home-sidebar__card home-sidebar__card--compact">
+          <p className="card-label">Sessão ativa</p>
+          <h2>Olá, {firstName}</h2>
+          <div className="home-badges">
+            <span className="type-badge">{user?.tipo || "-"}</span>
+            <span className="status-badge">{user?.statusConta || "-"}</span>
+          </div>
+        </section>
+
         <nav className="home-nav" aria-label="Menu principal">
-          {isAdmin && activeView === "usuarios" && (
-            <button
-              type="button"
-              className="home-nav__item"
-              onClick={() => setActiveView("home")}
-            >
-              <HomeIcon />
-              <span>Tela Principal</span>
-            </button>
-          )}
+          <button
+            type="button"
+            className={`home-nav__item ${activeView === "home" ? "is-active" : ""}`}
+            onClick={() => setActiveView("home")}
+          >
+            <HomeIcon />
+            <span>Painel</span>
+          </button>
+
+          <button
+            type="button"
+            className={`home-nav__item ${activeView === "perfil" ? "is-active" : ""}`}
+            onClick={() => setActiveView("perfil")}
+          >
+            <UserIcon />
+            <span>Meu perfil</span>
+          </button>
 
           {isAdmin && (
             <div className="home-nav__group">
@@ -285,37 +315,6 @@ export default function HomePage() {
           )}
         </nav>
 
-        <section className="home-sidebar__card">
-          <p className="card-label">Boas-vindas</p>
-          <h2>Ola, {firstName}!</h2>
-          <p>
-            Conta <strong>{user?.tipo}</strong> com status{" "}
-            <span className="status-badge">{user?.statusConta}</span>.
-          </p>
-        </section>
-
-        <section className="home-sidebar__card">
-          <p className="card-label">Dados da sessão autenticada</p>
-          <dl>
-            <div>
-              <dt>Nome</dt>
-              <dd>{user?.nome}</dd>
-            </div>
-            <div>
-              <dt>E-mail</dt>
-              <dd>{user?.email}</dd>
-            </div>
-            <div>
-              <dt>CPF</dt>
-              <dd>{user?.cpf}</dd>
-            </div>
-            <div>
-              <dt>Status</dt>
-              <dd>{user?.statusConta}</dd>
-            </div>
-          </dl>
-        </section>
-
         <button type="button" className="btn-logout" onClick={signOut}>
           Sair da conta
         </button>
@@ -328,6 +327,67 @@ export default function HomePage() {
             currentUserId={user?.id}
             onSessionExpired={signOut}
           />
+        ) : activeView === "perfil" ? (
+          <>
+            <header className="home-content__header">
+              <h2>Minhas informações pessoais</h2>
+              <p>Confira os dados vinculados à sua conta e sessão atual.</p>
+            </header>
+
+            <section className="home-grid">
+              <article className="fake-card fake-card--wide">
+                <p className="fake-card__label">Dados pessoais</p>
+                <dl className="account-data-grid">
+                  <div>
+                    <dt>Nome completo</dt>
+                    <dd>{user?.nome || "-"}</dd>
+                  </div>
+                  <div>
+                    <dt>E-mail</dt>
+                    <dd>{user?.email || "-"}</dd>
+                  </div>
+                  <div>
+                    <dt>CPF</dt>
+                    <dd>{user?.cpf || "-"}</dd>
+                  </div>
+                  <div>
+                    <dt>Telefone</dt>
+                    <dd>{user?.telefone || "Não informado"}</dd>
+                  </div>
+                  <div>
+                    <dt>Tipo de usuário</dt>
+                    <dd>{user?.tipo || "-"}</dd>
+                  </div>
+                  <div>
+                    <dt>Status da conta</dt>
+                    <dd>{user?.statusConta || "-"}</dd>
+                  </div>
+                  <div>
+                    <dt className="id-label">
+                      ID do usuário
+                      <button
+                        type="button"
+                        className="id-visibility-btn"
+                        onClick={() => setShowPersonalId((current) => !current)}
+                        aria-label={
+                          showPersonalId
+                            ? "Ocultar ID do usuário"
+                            : "Mostrar ID do usuário"
+                        }
+                      >
+                        <EyeIcon open={showPersonalId} />
+                      </button>
+                    </dt>
+                    <dd>{showPersonalId ? user?.id || "-" : hiddenPersonalId}</dd>
+                  </div>
+                  <div>
+                    <dt>Conta criada em</dt>
+                    <dd>{createdAt}</dd>
+                  </div>
+                </dl>
+              </article>
+            </section>
+          </>
         ) : (
           <>
             <header className="home-content__header">
@@ -348,54 +408,12 @@ export default function HomePage() {
             )}
 
             <section className="home-grid">
-              <article className="fake-card fake-card--wide">
-                <p className="fake-card__label">Dados da conta</p>
-                <dl className="account-data-grid">
-                  <div>
-                    <dt className="id-label">
-                      ID do usuario
-                      <button
-                        type="button"
-                        className="id-visibility-btn"
-                        onClick={() => setShowAccountId((current) => !current)}
-                        aria-label={
-                          showAccountId
-                            ? "Ocultar ID da conta"
-                            : "Mostrar ID da conta"
-                        }
-                      >
-                        <EyeIcon open={showAccountId} />
-                      </button>
-                    </dt>
-                    <dd>{showAccountId ? user?.id || "-" : hiddenAccountId}</dd>
-                  </div>
-                  <div>
-                    <dt>Número da conta</dt>
-                    <dd>{accountNumber}</dd>
-                  </div>
-                  <div>
-                    <dt>Status</dt>
-                    <dd>{accountStatus}</dd>
-                  </div>
-                  <div>
-                    <dt>Data de criação</dt>
-                    <dd>{createdAt}</dd>
-                  </div>
-                </dl>
-                {!account && (
-                  <p className="fake-card__hint">
-                    Conta ainda nao vinculada. Assim que a conta for criada, os
-                    dados aparecerao aqui.
-                  </p>
-                )}
-              </article>
-
               <article className="fake-card">
                 <p className="fake-card__label">Saldo em conta</p>
                 <h3>{formattedBalance}</h3>
                 <span className="fake-card__hint">
                   {account
-                    ? "Atualizado com dados do backend"
+                    ? ""
                     : "Sem conta vinculada no momento"}
                 </span>
               </article>
