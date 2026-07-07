@@ -5,6 +5,11 @@ import { getHistorico, transferir } from "../services/transacoesService";
 import UsuariosManagement from "../components/UsuariosManagement";
 import bankLogo from "../assets/pds-bank-logo.png";
 import "./HomePage.css";
+import {
+  deleteAllNotifications,
+  deleteNotification,
+  getNotifications,
+} from "../services/notificationsService";
 
 function HomeIcon() {
   return (
@@ -120,6 +125,12 @@ export default function HomePage() {
   const [transferenciaLoading, setTransferenciaLoading] = useState(false);
   const [transferenciaError, setTransferenciaError] = useState("");
   const [transferenciaSuccess, setTransferenciaSuccess] = useState("");
+  const [notificationsLoading, setNotificationsLoading] = useState(true);
+  const [notificationsError, setNotificationsError] = useState("");
+  const [notifications, setNotifications] = useState([]);
+  const [deletingNotificationId, setDeletingNotificationId] = useState(null);
+  const [deletingAllNotifications, setDeletingAllNotifications] =
+    useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -129,24 +140,30 @@ export default function HomePage() {
         if (isMounted) {
           setDashboardLoading(false);
           setHistoricoLoading(false);
+          setNotificationsLoading(false);
         }
         return;
       }
 
+      setNotificationsLoading(true);
+      setNotificationsError("");
       setDashboardLoading(true);
       setHistoricoLoading(true);
       setDashboardError("");
       setHistoricoError("");
 
       try {
-        const [dashboardResponse, historicoResponse] = await Promise.all([
-          getDashboardMe(token),
-          getHistorico(token),
-        ]);
+        const [dashboardResponse, historicoResponse, notificationsResponse] =
+          await Promise.all([
+            getDashboardMe(token),
+            getHistorico(token),
+            getNotifications(token),
+          ]);
 
         if (isMounted) {
           setDashboardData(dashboardResponse);
           setHistorico(historicoResponse.itens ?? []);
+          setNotifications(notificationsResponse.data ?? []);
         }
       } catch (err) {
         const message =
@@ -158,11 +175,13 @@ export default function HomePage() {
         if (isMounted) {
           setDashboardError(message);
           setHistoricoError(message);
+          setNotificationsError(message);
         }
       } finally {
         if (isMounted) {
           setDashboardLoading(false);
           setHistoricoLoading(false);
+          setNotificationsLoading(false);
         }
       }
     }
@@ -200,6 +219,61 @@ export default function HomePage() {
     return new Date(value).toLocaleString("pt-BR");
   }
 
+  async function handleDeleteNotification(notificationId) {
+    if (!token || deletingNotificationId || deletingAllNotifications) {
+      return;
+    }
+
+    setDeletingNotificationId(notificationId);
+    setNotificationsError("");
+
+    try {
+      await deleteNotification(token, notificationId);
+
+      setNotifications((current) =>
+        current.filter((notification) => notification.id !== notificationId),
+      );
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Erro ao excluir notificacao.";
+
+      if (message === "Sessao expirada. Faca login novamente.") {
+        signOut();
+        return;
+      }
+
+      setNotificationsError(message);
+    } finally {
+      setDeletingNotificationId(null);
+    }
+  }
+
+  async function handleDeleteAllNotifications() {
+    if (!token || notifications.length === 0 || deletingAllNotifications) {
+      return;
+    }
+
+    setDeletingAllNotifications(true);
+    setNotificationsError("");
+
+    try {
+      await deleteAllNotifications(token);
+      setNotifications([]);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Erro ao excluir notificacoes.";
+
+      if (message === "Sessao expirada. Faca login novamente.") {
+        signOut();
+        return;
+      }
+
+      setNotificationsError(message);
+    } finally {
+      setDeletingAllNotifications(false);
+    }
+  }
+
   async function handleTransferenciaSubmit(event) {
     event.preventDefault();
     if (
@@ -228,13 +302,16 @@ export default function HomePage() {
         valor: valorNumerico,
       });
 
-      const [dashboardResponse, historicoResponse] = await Promise.all([
-        getDashboardMe(token),
-        getHistorico(token),
-      ]);
+      const [dashboardResponse, historicoResponse, notificationsResponse] =
+        await Promise.all([
+          getDashboardMe(token),
+          getHistorico(token),
+          getNotifications(token),
+        ]);
 
       setDashboardData(dashboardResponse);
       setHistorico(historicoResponse.itens ?? []);
+      setNotifications(notificationsResponse.data ?? []);
       setTransferenciaForm({ contaDestinoNumero: "", valor: "" });
       setTransferenciaSuccess(
         response.mensagem || "Transferencia realizada com sucesso.",
@@ -394,6 +471,66 @@ export default function HomePage() {
               <h2>Painel do cliente</h2>
               <p>Dados reais da conta vinculada ao usuario autenticado.</p>
             </header>
+
+              <article className="fake-card fake-card--wide">
+                <div className="notification-header">
+                  <p className="fake-card__label">Notificações da conta</p>
+
+                  {notifications.length > 0 && (
+                    <button
+                      type="button"
+                      className="notification-clear-all"
+                      onClick={handleDeleteAllNotifications}
+                      disabled={
+                        notificationsLoading || deletingAllNotifications
+                      }
+                    >
+                      {deletingAllNotifications
+                        ? "Apagando..."
+                        : "Apagar todas"}
+                    </button>
+                  )}
+                </div>
+
+                {notificationsLoading ? (
+                  <p className="fake-card__hint">Carregando notificações...</p>
+                ) : notificationsError ? (
+                  <p className="fake-card__hint">{notificationsError}</p>
+                ) : notifications.length === 0 ? (
+                  <p className="fake-card__hint">
+                    Nenhuma notificação registrada até o momento.
+                  </p>
+                ) : (
+                  <ul className="notification-list">
+                    {notifications.slice(0, 6).map((notification) => {
+                      const isDeleting =
+                        deletingNotificationId === notification.id;
+
+                      return (
+                        <li key={notification.id} className="notification-item">
+                          <div className="notification-item__content">
+                            <strong>{notification.title}</strong>
+                            <span>{notification.body}</span>
+                            <small>{formatDate(notification.createdAt)}</small>
+                          </div>
+
+                          <button
+                            type="button"
+                            className="notification-delete"
+                            onClick={() =>
+                              handleDeleteNotification(notification.id)
+                            }
+                            disabled={isDeleting || deletingAllNotifications}
+                            aria-label={`Apagar notificacao ${notification.title}`}
+                          >
+                            {isDeleting ? "Apagando..." : "Apagar"}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </article>
 
             {dashboardError && (
               <div className="home-feedback home-feedback--error" role="alert">
