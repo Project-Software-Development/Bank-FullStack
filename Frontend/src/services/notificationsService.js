@@ -77,3 +77,36 @@ export async function deleteAllNotifications(token) {
     "Nao foi possivel excluir as notificacoes.",
   );
 }
+
+export async function updateNotificationStatus(token, notificationId, lida) {
+  let response;
+
+  try {
+    response = await fetch(`${API_BASE_URL}/notifications/${notificationId}/status`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ lida }),
+    });
+  } catch {
+    throw new Error("Nao foi possivel atualizar a notificacao.");
+  }
+
+  if (!response.ok) {
+    const error = await parseJsonSafely(response);
+
+    if (response.status === 401) {
+      throw new Error("Sessao expirada. Faca login novamente.");
+    }
+
+    if (response.status === 404) {
+      throw new Error(error.message || "Notificacao nao encontrada.");
+    }
+
+    throw new Error(error.message || "Nao foi possivel atualizar a notificacao.");
+  }
+
+  return response.json();
+}

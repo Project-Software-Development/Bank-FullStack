@@ -39,6 +39,7 @@ export class NotificationService {
         id: true,
         title: true,
         body: true,
+        lida: true,
         createdAt: true,
       },
     });
@@ -46,6 +47,42 @@ export class NotificationService {
     return {
       total: notifications.length,
       data: notifications,
+    };
+  }
+
+  async updateReadStatus(userId: string, notificationId: string, lida: boolean) {
+    const result = await this.prisma.notification.updateMany({
+      where: {
+        id: notificationId,
+        userId,
+      },
+      data: {
+        lida,
+      },
+    });
+
+    if (result.count === 0) {
+      throw new NotFoundException("Notificacao nao encontrada.");
+    }
+
+    const notification = await this.prisma.notification.findUnique({
+      where: {
+        id: notificationId,
+      },
+      select: {
+        id: true,
+        title: true,
+        body: true,
+        lida: true,
+        createdAt: true,
+      },
+    });
+
+    return {
+      message: lida
+        ? "Notificacao marcada como lida."
+        : "Notificacao marcada como nao lida.",
+      data: notification,
     };
   }
 
@@ -162,6 +199,7 @@ export class NotificationService {
         id: true,
         title: true,
         body: true,
+        lida: true,
         createdAt: true,
       },
     });
