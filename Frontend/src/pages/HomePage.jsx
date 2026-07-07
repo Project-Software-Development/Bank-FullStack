@@ -432,6 +432,10 @@ export default function HomePage() {
                     <dd>{user?.telefone || "Não informado"}</dd>
                   </div>
                   <div>
+                    <dt>Número da conta</dt>
+                    <dd>{account?.numero || "-"}</dd>
+                  </div>
+                  <div>
                     <dt>Tipo de usuário</dt>
                     <dd>{user?.tipo || "-"}</dd>
                   </div>
