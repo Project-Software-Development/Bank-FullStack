@@ -1,13 +1,13 @@
 .register-root {
   min-height: 100vh;
   display: flex;
-  background: #f4f6fb;
+  background: #f1f4f9;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 
 .register-panel {
   width: 42%;
-  background: #0b1628;
+  background: linear-gradient(145deg, #1b2f67 0%, #274687 72%, #4f6fa6 100%);
   color: #ffffff;
   display: flex;
   align-items: center;
@@ -47,13 +47,13 @@
 }
 
 .register-form-card__header h1 {
-  color: #0d1f3c;
+  color: #1f2f57;
   font-size: 1.75rem;
   margin-bottom: 6px;
 }
 
 .register-form-card__header p {
-  color: #6b7a99;
+  color: #5f6f91;
 }
 
 .register-form-card form {
@@ -68,16 +68,16 @@
 
 .field-group label {
   font-size: 0.84rem;
-  color: #0d1f3c;
+  color: #1f2f57;
   font-weight: 600;
 }
 
 .field-group input {
   width: 100%;
-  border: 1.5px solid #dde3f0;
+  border: 1.5px solid #d2dced;
   border-radius: 10px;
-  background: #f8fafd;
-  color: #0d1f3c;
+  background: #f7f9fd;
+  color: #1f2f57;
   padding: 12px 14px;
   font-size: 0.92rem;
   font-family: inherit;
@@ -85,8 +85,8 @@
 
 .field-group input:focus {
   outline: none;
-  border-color: #1c3160;
-  box-shadow: 0 0 0 3px rgba(28, 49, 96, 0.1);
+  border-color: #274687;
+  box-shadow: 0 0 0 3px rgba(39, 70, 135, 0.12);
   background: #ffffff;
 }
 
@@ -105,21 +105,21 @@
   transform: translateY(-50%);
   border: none;
   background: transparent;
-  color: #6b7a99;
+  color: #5f6f91;
   display: flex;
   align-items: center;
   cursor: pointer;
 }
 
 .toggle-password:hover {
-  color: #0d1f3c;
+  color: #1f2f57;
 }
 
 .register-feedback-banner {
   border-radius: 10px;
-  border: 1px solid #cfe0ff;
-  background: #f1f6ff;
-  color: #27426f;
+  border: 1px solid #d1ddf0;
+  background: #edf3fb;
+  color: #2f4c86;
   padding: 10px 12px;
   font-size: 0.86rem;
 }
@@ -137,7 +137,7 @@
   margin-top: 4px;
   border: none;
   border-radius: 10px;
-  background: #0b1628;
+  background: linear-gradient(135deg, #1b2f67 0%, #274687 100%);
   color: #ffffff;
   padding: 13px;
   font-size: 0.95rem;
@@ -146,7 +146,7 @@
 }
 
 .register-btn-submit:hover:not(:disabled) {
-  background: #1c3160;
+  background: linear-gradient(135deg, #274687 0%, #4f6fa6 100%);
 }
 
 .register-btn-submit:disabled {
@@ -157,20 +157,20 @@
 .register-footer {
   margin-top: 18px;
   text-align: center;
-  color: #6b7a99;
+  color: #5f6f91;
   font-size: 0.88rem;
 }
 
 .register-link-btn {
   border: none;
   background: transparent;
-  color: #1c3160;
+  color: #274687;
   font-weight: 600;
   cursor: pointer;
 }
 
 .register-link-btn:hover:not(:disabled) {
-  color: #00b87e;
+  color: #1b2f67;
 }
 
 .register-link-btn:disabled {

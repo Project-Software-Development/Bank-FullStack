@@ -1,4 +1,5 @@
 import { useAuth } from '../context/AuthContext';
+import bankLogo from '../assets/pds-bank-logo.png';
 import './DashboardPage.css';
 
 export default function DashboardPage() {
@@ -8,15 +9,7 @@ export default function DashboardPage() {
     <div className="dashboard-root">
       <header className="dashboard-header">
         <div className="dashboard-logo">
-          <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
-            <rect x="3" y="13" width="4" height="10" rx="1" fill="currentColor" />
-            <rect x="9" y="9" width="4" height="14" rx="1" fill="currentColor" />
-            <rect x="15" y="5" width="4" height="18" rx="1" fill="currentColor" />
-            <rect x="21" y="11" width="4" height="12" rx="1" fill="currentColor" />
-            <rect x="1" y="24" width="26" height="2" rx="1" fill="currentColor" />
-            <path d="M14 1L26 7H2L14 1Z" fill="currentColor" />
-          </svg>
-          <span>Banco Litoral</span>
+          <img src={bankLogo} alt="PDS Bank" className="dashboard-logo__image" />
         </div>
         <div className="dashboard-user">
           <span>{user?.nome}</span>

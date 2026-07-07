@@ -58,7 +58,7 @@ export default function RegisterPage({ onBackToLogin, onRegisterSuccess }) {
         <div className="register-panel__content">
           <h2>Abra sua conta digital</h2>
           <p>
-            Preencha seus dados para criar uma conta no Banco Litoral.
+            Preencha seus dados para criar uma conta no PDS Bank.
             Seu cadastro será validado no backend.
           </p>
         </div>

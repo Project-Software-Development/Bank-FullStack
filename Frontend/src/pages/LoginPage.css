@@ -1,20 +1,20 @@
-/* ================================
-   LoginPage — Banco Litoral
-   Paleta: azul-marinho profundo + verde-neon vibrante
-   ================================ */
+/* =========================================
+  LoginPage — PDS Bank
+  Paleta: azul institucional da nova marca
+  ========================================= */
 
 :root {
-  --navy: #0b1628;
-  --navy-mid: #122040;
-  --navy-light: #1c3160;
-  --green: #00e5a0;
-  --green-dim: #00b87e;
+  --navy: #1b2f67;
+  --navy-mid: #274687;
+  --navy-light: #4f6fa6;
+  --green: #5d7fb4;
+  --green-dim: #6f86b4;
   --white: #ffffff;
-  --off-white: #f4f6fb;
-  --text-main: #0d1f3c;
-  --text-muted: #6b7a99;
-  --border: #dde3f0;
-  --input-bg: #f8fafd;
+  --off-white: #f1f4f9;
+  --text-main: #1f2f57;
+  --text-muted: #5f6f91;
+  --border: #d2dced;
+  --input-bg: #f7f9fd;
   --error: #e84040;
   --error-bg: #fff0f0;
   --radius: 12px;
@@ -51,6 +51,7 @@
   padding: 56px 52px;
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 32px;
   max-width: 420px;
 }
@@ -62,32 +63,29 @@
   line-height: 1.25;
   letter-spacing: -0.02em;
   margin-bottom: 16px;
+  text-align: center;
 }
 
 .login-panel__tagline p {
   font-size: 1rem;
   color: rgba(255, 255, 255, 0.55);
   line-height: 1.6;
+  text-align: center;
 }
 
 /* Logo */
 .bank-logo {
   display: flex;
   align-items: center;
-  gap: 10px;
+  width: min(330px, 100%);
 }
 
-.bank-logo__icon {
-  color: var(--green);
-  display: flex;
-  align-items: center;
-}
-
-.bank-logo__name {
-  font-size: 1.3rem;
-  font-weight: 800;
-  color: var(--white);
-  letter-spacing: -0.03em;
+.bank-logo__image {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  border-radius: 14px;
+  box-shadow: 0 12px 28px rgba(16, 35, 82, 0.28);
 }
 
 /* Stats */
@@ -105,7 +103,7 @@
   left: calc(var(--i) * 14% - 5%);
   width: 1px;
   height: 140%;
-  background: rgba(0, 229, 160, 0.06);
+  background: rgba(143, 163, 201, 0.22);
   transform: rotate(18deg);
   transform-origin: top center;
 }
@@ -131,14 +129,6 @@
 .login-form-card__mobile-logo {
   display: none;
   margin-bottom: 28px;
-}
-
-.login-form-card__mobile-logo .bank-logo__name {
-  color: var(--text-main);
-}
-
-.login-form-card__mobile-logo .bank-logo__icon {
-  color: var(--navy);
 }
 
 .login-form-card__header h1 {
@@ -193,7 +183,7 @@ form {
 }
 
 .forgot-link:hover {
-  color: var(--green-dim);
+  color: var(--navy);
 }
 
 .input-wrapper {
@@ -299,7 +289,7 @@ form {
 }
 
 .btn-submit:hover:not(:disabled) {
-  background: var(--navy-light);
+  background: var(--navy-mid);
 }
 
 .btn-submit:active:not(:disabled) {
@@ -345,7 +335,7 @@ form {
 }
 
 .link-btn:hover {
-  color: var(--green-dim);
+  color: var(--navy);
 }
 
 /* ---- Responsivo ---- */

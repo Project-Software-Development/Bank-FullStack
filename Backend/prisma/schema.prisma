@@ -30,4 +30,42 @@ model Notification {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  id          String   @id @default(uuid())
+  nome        String
+  cpf         String   @unique
+  email       String   @unique
+  telefone    String?
+  senha       String
+  tipo        String
+  statusConta String   @default("ATIVO")
+  createdAt   DateTime @default(now())
+
+  conta       Conta?
+}
+
+model Conta {
+  id                  String      @id @default(uuid())
+  numero              String      @unique
+  saldo               Decimal     @default(0)
+  status              String      @default("ATIVA")
+  createdAt           DateTime    @default(now())
+  userId              String      @unique
+  user                User        @relation(fields: [userId], references: [id])
+  transacoesEnviadas  Transacao[] @relation("ContaOrigem")
+  transacoesRecebidas Transacao[] @relation("ContaDestino")
+}
+
+model Transacao {
+  id            String   @id @default(uuid())
+  tipo          String   @default("TRANSFERENCIA")
+  valor         Decimal
+  descricao     String?
+  createdAt     DateTime @default(now())
+  contaOrigemId String
+  contaDestinoId String
+  contaOrigem   Conta    @relation("ContaOrigem", fields: [contaOrigemId], references: [id])
+  contaDestino  Conta    @relation("ContaDestino", fields: [contaDestinoId], references: [id])
+
+  @@index([contaOrigemId, createdAt])
+  @@index([contaDestinoId, createdAt])
 }
